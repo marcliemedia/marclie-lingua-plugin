@@ -34,6 +34,7 @@ final class Plugin {
 		}
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'marclie-lingua', Cli::class );
+			\WP_CLI::add_command( 'marclie-lingua post', PostCli::class );
 		}
 	}
 }
