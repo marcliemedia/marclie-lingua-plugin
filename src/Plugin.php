@@ -13,6 +13,7 @@ final class Plugin {
 		Settings::hooks();
 		Install::hooks();
 		PostTranslations::hooks();
+		PostRenderer::hooks();
 		add_action(
 			'init',
 			static function (): void {
