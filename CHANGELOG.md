@@ -29,7 +29,7 @@ Generic multi-language plugin (0.1.0 was built for one site, Croatian → Englis
 - In-browser blog translation follows the site's languages; proper-name fixes come from `marclie_lingua/browser_fixes`.
 
 ### Removed
-- Site-specific copy and behaviour of 0.1.0 (Kristal Paris).
+- Site-specific copy and behaviour of 0.1.0.
 - Filter `marclie_lingua/language` (the language is the URL's).
 
 ### Upgrade from 0.1.0
