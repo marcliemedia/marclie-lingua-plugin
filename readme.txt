@@ -4,7 +4,7 @@ Tags: translation, multilingual, languages, hreflang, bricks
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.4
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: Proprietary
 
 Translates a WordPress site into other languages from editable string pairs, with language URLs, a language
@@ -21,8 +21,8 @@ the rendered page on the server, text by text, from translations stored in the d
 * texts are collected while pages are viewed in a translated language and by "Scan the site";
 * translations are edited in Translations (one tab per language) or imported / exported with WP-CLI;
 * a text without a translation shows in the source language;
-* blog posts are not stored: their parts marked `data-mlg-skip` are translated in the visitor's browser (Chrome /
-  Edge built-in Translator API).
+* blog posts are translated like the other pages (setting "Blog posts"), or — free and quick, but not indexed in the
+  translated languages — in the visitor's browser (parts marked `data-mlg-skip`, Chrome / Edge Translator API).
 
 == Installation ==
 
@@ -45,11 +45,21 @@ CSS and JS. Its look follows these custom properties (with fallbacks): `--mlg-sw
 
 == SEO ==
 
-With "Let search engines index the translated pages" on: hreflang alternates (+ x-default), each page's canonical
-and `og:url` in its own language, `og:locale:alternate`, and one sitemap per language
-(`/mlg-sitemap-{code}.xml`, listed in the Rank Math sitemap index or the WordPress core index). Single blog posts in
-a translated language are `noindex, follow` with the source URL as canonical. With the option off every translated
-page is `noindex, follow`.
+With "Let search engines index the translated pages" on:
+
+* hreflang alternates with language-only codes (`hr`, `en`, `de`) and `x-default` = the language chosen in the
+  settings (the version for searchers whose language the site does not have);
+* each page's canonical and `og:url` in its own language, `og:locale:alternate`;
+* one sitemap per language (`/mlg-sitemap-{code}.xml`, listed in the Rank Math sitemap index or the WordPress core
+  index);
+* a translated page that still shows untranslated texts is `noindex, follow`, has no hreflang links, is left out of
+  the other versions' links and of the sitemap — until every text on it is translated. Search engines detect the
+  language from the visible text, so a page in two languages is a poor result. The state is recorded when the page
+  is rendered; "Scan the site" renders every page in every language. Translations › Texts lists the hidden pages and
+  the share of translated texts per language; names and codes that stay the same: bulk action "Keep original text".
+
+Blog posts in browser mode are `noindex, follow` in translated languages with the source URL as canonical. With the
+option off every translated page is `noindex, follow`.
 
 == Marclie Booking ==
 
@@ -65,7 +75,7 @@ Mode "Off": booking widgets are translated like other texts (parts rendered by s
 
 == WP-CLI ==
 
-* `wp marclie-lingua scan` — request every public page in the first translated language;
+* `wp marclie-lingua scan` — request every public page in every translated language;
 * `wp marclie-lingua export [<file>] --lang=<code> [--status=auto|edited] [--untranslated] [--seed]`;
 * `wp marclie-lingua import <file> --lang=<code> [--status=auto|edited] [--overwrite]`;
 * `wp marclie-lingua seed --lang=<code>` — import `data/{code}.json`.
@@ -94,9 +104,14 @@ for scripts that compare paths.
 
 == Upgrade Notice ==
 
+= 0.2.1 =
+Better search results: language-only hreflang codes, an x-default language setting, incomplete translated pages kept
+out of search engines, blog posts translatable like other pages. Run "Scan the site" after updating.
+
 = 0.2.0 =
 Back up the database first. Database 1 → 2 moves the 0.1 English translations into the new per-language table and
-sets source `hr`, target `en`. Language URLs change from `?lang=en` to `/en/…` (old URLs redirect).
+sets source `hr`, target `en`, blog posts in browser mode (switch to "Translate like the other pages" to
+get them indexed). Language URLs change from `?lang=en` to `/en/…` (old URLs redirect).
 Sites using Marclie Booking's `?lang` language must update Marclie Booking to a version with the language contract
 at the same time. Site-specific attributes (`data-*` copy) and proper-name fixes now go through the filters
 `marclie_lingua/attributes` and `marclie_lingua/browser_fixes`; scripts that match paths can use

@@ -109,7 +109,8 @@ final class Install {
 			}
 		}
 		if ( null === get_option( Settings::OPTION, null ) ) {
-			Settings::save( array( 'source' => 'hr', 'targets' => array( 'en' ), 'booking' => 'auto', 'index' => true ) );
+			// 0.1 behaviour: Croatian → English, blog posts translated in the browser
+			Settings::save( array( 'source' => 'hr', 'targets' => array( 'en' ), 'booking' => 'auto', 'index' => true, 'xdefault' => 'hr', 'blog' => 'browser' ) );
 		}
 		foreach ( array( 'translation', 'status', 'updated_at' ) as $column ) {
 			if ( in_array( $column, $columns, true ) ) {

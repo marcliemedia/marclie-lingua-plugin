@@ -63,10 +63,22 @@ final class HtmlTranslator {
 	 * @param Lang          $target        Language of the page.
 	 * @param Lang          $source        Language of the content.
 	 * @param bool          $translateHead Translate `<title>` / metas, set `<html lang>` and `og:locale` (false: a
-	 *                                     single blog post, whose content stays in the source language).
+	 *                                     single blog post left to the browser, whose content stays in the source).
+	 * @param bool          $browserParts  `[data-mlg-skip]` and `$blog` elements are blog parts for the browser
+	 *                                     translation (false: blog posts are translated like everything else).
 	 * @param \Closure|null $blog          (\Dom\Element): bool — further blog post parts of this page.
+	 * @param \Closure|null $finish        (\Dom\HTMLDocument, int $missing): void — called before serializing, with
+	 *                                     the number of the page's texts that have no translation.
 	 */
-	public function __construct( private \Closure $resolve, private Lang $target, private Lang $source, private bool $translateHead = true, private ?\Closure $blog = null ) {
+	public function __construct(
+		private \Closure $resolve,
+		private Lang $target,
+		private Lang $source,
+		private bool $translateHead = true,
+		private bool $browserParts = true,
+		private ?\Closure $blog = null,
+		private ?\Closure $finish = null
+	) {
 		$this->attrs = array_values( array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/attributes', self::ATTRS ) ) ) );
 		$this->skip  = implode( ', ', array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/skip_selectors', self::SKIP ) ) ) );
 		$this->parts = new \WeakMap();
@@ -88,11 +100,14 @@ final class HtmlTranslator {
 			}
 		}
 
-		$map = $this->sources ? ( $this->resolve )( $this->sources ) : array();
+		$map     = $this->sources ? ( $this->resolve )( $this->sources ) : array();
+		$missing = array();
 		foreach ( $this->jobs as $job ) {
 			$translation = $map[ $job['hash'] ] ?? '';
 			if ( '' !== $translation ) {
 				$this->apply( $doc, $job, $translation );
+			} else {
+				$missing[ $job['hash'] ] = true;
 			}
 		}
 
@@ -103,6 +118,9 @@ final class HtmlTranslator {
 		if ( $this->translateHead ) {
 			$root?->setAttribute( 'lang', $this->target->bcp47 );
 			$doc->querySelector( 'meta[property="og:locale"]' )?->setAttribute( 'content', $this->target->ogLocale() );
+		}
+		if ( null !== $this->finish ) {
+			( $this->finish )( $doc, count( $missing ) );
 		}
 
 		return $doc->saveHtml();
@@ -126,6 +144,9 @@ final class HtmlTranslator {
 
 	/** Blog post part: left to the browser translation. */
 	private function blogPart( \Dom\Element $el ): bool {
+		if ( ! $this->browserParts ) {
+			return false;
+		}
 		if ( ! isset( $this->parts[ $el ] ) ) {
 			$this->parts[ $el ] = $el->matches( '[data-mlg-skip]' ) || ( null !== $this->blog && ( $this->blog )( $el ) );
 		}

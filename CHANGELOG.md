@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.1 — 2026-11-09
+
+### Added
+- Pages that still show untranslated texts in a language are `noindex, follow`, without hreflang links, left out of
+  the other versions' hreflang and of the language sitemap until fully translated (option `mlg_incomplete`).
+  Admin: share of translated texts per language, list of hidden pages, bulk action "Keep original text".
+- Setting "x-default": the language version for searchers whose language the site does not have.
+- Setting "Blog posts": translated like other pages (stored, indexable — default) or in the visitor's browser.
+
+### Changed
+- hreflang uses language-only codes (`hr`, `en`, `de`) instead of region codes (`hr-HR`, `en-GB`, `de-DE`).
+- "Scan the site" renders every page in every translated language (records each page's completeness).
+
 ## 0.2.0 — 2026-11-09
 
 Generic multi-language plugin (0.1.0 was built for one site, Croatian → English).

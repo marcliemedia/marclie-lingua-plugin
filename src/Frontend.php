@@ -19,11 +19,14 @@ defined( 'ABSPATH' ) || exit;
 
 final class Frontend {
 
-	/** Single blog post: source `<title>`, metas and page language (decided before output, while the query is current). */
+	/** Single blog post in browser mode: source `<title>`, metas and page language (decided while the query is current). */
 	private static bool $post = false;
 
-	/** Archive or blog index: the items of Bricks' own Posts element that link to a blog post are left to the browser. */
+	/** Archive or blog index in browser mode: Bricks Posts items linking to a blog post are left to the browser. */
 	private static bool $archive = false;
+
+	/** The page is a lasting URL whose completeness is remembered (not a 404 or a search). */
+	private static bool $track = false;
 
 	public static function hooks(): void {
 		// priority 0: an outer buffer, so it receives the document after inner buffers (theme icons) ran
@@ -46,8 +49,13 @@ final class Frontend {
 
 	public static function startBuffer(): void {
 		if ( self::active() ) {
-			self::$post    = (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
-			self::$archive = is_home() || is_archive();
+			$browser       = Settings::browserBlog();
+			self::$post    = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
+			self::$archive = $browser && ( is_home() || is_archive() );
+			// the state of a page is what an anonymous visitor (and a search engine) gets at its own URL
+			self::$track   = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
+				&& 'GET' === ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
+				&& ( empty( $_GET ) || '' === (string) get_option( 'permalink_structure' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check.
 			ob_start( array( self::class, 'buffer' ) );
 		}
 	}
@@ -62,7 +70,9 @@ final class Frontend {
 				Language::currentLang(),
 				Settings::source(),
 				! self::$post,
-				self::$archive ? self::blogItem( ... ) : null
+				Settings::browserBlog(),
+				self::$archive ? self::blogItem( ... ) : null,
+				self::finish( ... )
 			);
 
 			return $translator->translate( $html );
@@ -70,6 +80,39 @@ final class Frontend {
 			error_log( 'Marclie Lingua: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- keep the source page, report why.
 			return $html;
 		}
+	}
+
+	/**
+	 * A page that still shows untranslated texts is not offered to search engines in this language: `noindex,
+	 * follow`, no hreflang links (Coverage keeps it out of the other versions' links and the sitemap).
+	 */
+	private static function finish( \Dom\HTMLDocument $doc, int $missing ): void {
+		if ( self::$track ) {
+			Coverage::record( Language::current(), self::requestUri(), $missing );
+		}
+		if ( 0 === $missing || self::$post ) {
+			return; // complete, or a browser-translated blog post (noindex already)
+		}
+		foreach ( $doc->querySelectorAll( 'link[rel="alternate"][hreflang]' ) as $link ) {
+			$link->remove();
+		}
+		$robots = $doc->querySelector( 'meta[name="robots"]' );
+		if ( null === $robots && null !== $doc->head ) {
+			$robots = $doc->createElement( 'meta' );
+			$robots->setAttribute( 'name', 'robots' );
+			$doc->head->append( $robots );
+		}
+		if ( null === $robots ) {
+			return;
+		}
+		// keep the other directives (nofollow, max-image-preview …); only the indexing changes
+		$directives = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $robots->getAttribute( 'content' ) ) ) ) );
+		$directives = array_values( array_diff( $directives, array( 'index', 'all', 'noindex' ) ) );
+		array_unshift( $directives, 'noindex' );
+		if ( ! array_intersect( $directives, array( 'follow', 'nofollow', 'none' ) ) ) {
+			$directives[] = 'follow';
+		}
+		$robots->setAttribute( 'content', implode( ', ', $directives ) );
 	}
 
 	/** An item of Bricks' Posts element whose first link is a blog post. */
@@ -139,12 +182,16 @@ final class Frontend {
 		return $texts;
 	}
 
-	/** Path of this request (first page where a new string is found). */
+	/** Source-language path of this request (the page where a new string is found). */
 	private static function path(): string {
-		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only the path is kept.
-		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+		$path = (string) wp_parse_url( self::requestUri(), PHP_URL_PATH );
 
 		return '' === $path ? '/' : sanitize_text_field( rawurldecode( $path ) );
+	}
+
+	/** This request's URI in the source language (the language prefix is removed by Router); Coverage key source. */
+	public static function requestUri(): string {
+		return isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- parsed as a URL by the callers.
 	}
 
 	private static function isHtmlResponse(): bool {

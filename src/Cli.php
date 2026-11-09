@@ -11,7 +11,8 @@ defined( 'ABSPATH' ) || exit;
 final class Cli {
 
 	/**
-	 * Requests every public page in the first translated language: stores new texts, marks every text as seen.
+	 * Requests every public page in every translated language: stores new texts, marks every text as seen and
+	 * records which pages still show untranslated texts.
 	 *
 	 * ## EXAMPLES
 	 *     wp marclie-lingua scan
@@ -20,7 +21,7 @@ final class Cli {
 		if ( ! Settings::targets() ) {
 			\WP_CLI::error( 'No translated language is set up (Translations › Settings).' );
 		}
-		$urls = Scanner::urls();
+		$urls = Scanner::jobs();
 		Scanner::start();
 		$bad = 0;
 		foreach ( $urls as $i => $url ) {
@@ -34,7 +35,7 @@ final class Cli {
 		Scanner::finish();
 		$untranslated = array();
 		foreach ( Settings::targetCodes() as $code ) {
-			$untranslated[] = $code . ' ' . Store::count( 'new', $code );
+			$untranslated[] = sprintf( '%s %d (%d pages hidden from search engines)', $code, Store::count( 'new', $code ), count( Coverage::pages( $code ) ) );
 		}
 		\WP_CLI::success( sprintf( '%d pages scanned. Texts: %d; untranslated: %s.', count( $urls ), Store::count( 'all', Settings::source()->code ), implode( ', ', $untranslated ) ) );
 	}

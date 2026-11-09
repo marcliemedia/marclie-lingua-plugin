@@ -7,6 +7,7 @@
 
 namespace Marclie\Lingua\Admin;
 
+use Marclie\Lingua\Coverage;
 use Marclie\Lingua\Integrations\Booking;
 use Marclie\Lingua\Languages;
 use Marclie\Lingua\Settings;
@@ -71,6 +72,7 @@ final class SettingsPage {
 				$input['source'] = $current['source'];
 			} else {
 				Store::truncate();
+				Coverage::reset();
 				add_settings_error( Settings::OPTION, 'mlg-reset', __( 'Source language changed; every stored text was deleted. Scan the site to collect the texts again.', 'marclie-lingua' ), 'updated' );
 			}
 		}
@@ -150,7 +152,25 @@ final class SettingsPage {
 						<th scope="row"><?php esc_html_e( 'Search engines', 'marclie-lingua' ); ?></th>
 						<td>
 							<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[index]" value="1" <?php checked( $settings['index'] ); ?>> <?php esc_html_e( 'Let search engines index the translated pages (hreflang links, own canonical URL, language sitemaps)', 'marclie-lingua' ); ?></label>
-							<p class="description"><?php esc_html_e( 'When off, translated pages are "noindex, follow".', 'marclie-lingua' ); ?></p>
+							<p class="description"><?php esc_html_e( 'When off, translated pages are "noindex, follow". When on, a translated page is still "noindex, follow" while it shows texts that are not translated yet (a page in two languages is a poor search result); it is indexed once every text on it is translated.', 'marclie-lingua' ); ?></p>
+							<p>
+								<label for="mlg-xdefault"><?php esc_html_e( 'Version for searchers whose language the site does not have (x-default):', 'marclie-lingua' ); ?></label>
+								<select id="mlg-xdefault" name="<?php echo esc_attr( $name ); ?>[xdefault]">
+									<?php foreach ( Settings::languages() as $lang ) : ?>
+										<option value="<?php echo esc_attr( $lang->code ); ?>" <?php selected( $lang->code, $settings['xdefault'] ); ?>><?php echo esc_html( $lang->name ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Blog posts', 'marclie-lingua' ); ?></th>
+						<td>
+							<fieldset>
+								<legend class="screen-reader-text"><?php esc_html_e( 'Blog posts', 'marclie-lingua' ); ?></legend>
+								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="stored" <?php checked( $settings['blog'], 'stored' ); ?>> <?php esc_html_e( 'Translate like the other pages (texts stored and edited here; translated posts can be found in search engines)', 'marclie-lingua' ); ?></label><br>
+								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="browser" <?php checked( $settings['blog'], 'browser' ); ?>> <?php esc_html_e( 'Translate in the visitor\'s browser (parts marked data-mlg-skip; nothing to translate here, but translated posts are not indexed)', 'marclie-lingua' ); ?></label>
+							</fieldset>
 						</td>
 					</tr>
 				</table>

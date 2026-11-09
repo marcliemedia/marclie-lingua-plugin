@@ -6,15 +6,18 @@
  *   `rank_math/frontend/canonical` and `rank_math/opengraph/url`) is the same URL in the request's language.
  * - Robots: when the setting `index` is off every translated page is `noindex, follow` (core `wp_robots`,
  *   Rank Math `rank_math/frontend/robots`).
- * - Single blog posts (Blog::types(), filter `marclie_lingua/blog_post_page`) keep their content in the source
- *   language, so a translated version is a duplicate: always `noindex, follow` with the canonical on the source URL,
- *   and no hreflang links on any version of the post.
- * - Alternates (setting `index` on): `<link rel="alternate" hreflang>` for the source and every target language,
- *   `x-default` = the source URL, and `og:locale:alternate` for the other languages. They are built from the page's
- *   canonical URL (Rank Math's canonical when Rank Math is active, `wp_get_canonical_url()` on singular pages, else
- *   the current URL without its query string), so tracking or filter arguments never reach the alternates. They are
- *   left out when the page is noindex (robots of the page, `blog_public` off), when its canonical is another page,
- *   and on 404, search and preview pages.
+ * - Single blog posts in browser mode (setting `blog` = `browser`; Blog::types(), filter
+ *   `marclie_lingua/blog_post_page`) keep their content in the source language, so a translated version is a
+ *   duplicate: always `noindex, follow` with the canonical on the source URL, and no hreflang links on any version
+ *   of the post. With stored blog translations posts are treated like every other page.
+ * - A translated page that still shows untranslated texts is `noindex, follow` without hreflang links (Frontend),
+ *   and the other versions leave it out of theirs (Coverage).
+ * - Alternates (setting `index` on): `<link rel="alternate" hreflang>` with language-only codes for the source and
+ *   every complete target version, `x-default` = the version of the setting `xdefault`, and `og:locale:alternate`
+ *   for the other languages. They are built from the page's canonical URL (Rank Math's canonical when Rank Math is
+ *   active, `wp_get_canonical_url()` on singular pages, else the current URL without its query string), so
+ *   tracking or filter arguments never reach the alternates. They are left out when the page is noindex (robots of
+ *   the page, `blog_public` off), when its canonical is another page, and on 404, search and preview pages.
  */
 
 namespace Marclie\Lingua;
@@ -85,17 +88,33 @@ final class Seo {
 		return $robots;
 	}
 
-	/** hreflang links (and `og:locale:alternate` when Rank Math does not print Open Graph tags). */
+	/**
+	 * hreflang links with language-only codes (`hr`, `en`, `de`: every speaker of the language, wherever they live),
+	 * `x-default` = the version of the setting `xdefault`, and `og:locale:alternate` when Rank Math does not print
+	 * Open Graph tags. A translated version that still shows untranslated texts (Coverage) is left out.
+	 */
 	public static function alternates(): void {
 		$url = self::alternatesUrl();
 		if ( null === $url ) {
 			return;
 		}
-		$source = Settings::source();
+		$path    = Frontend::requestUri();
+		$current = Language::current();
+		$listed  = array();
 		foreach ( Settings::languages() as $lang ) {
-			printf( '<link rel="alternate" hreflang="%s" href="%s" />' . "\n", esc_attr( $lang->bcp47 ), esc_url( Router::url( $url, $lang->code ) ) );
+			// this page's own language is judged when it is rendered (Frontend drops the links if it is incomplete)
+			if ( ! Settings::isTarget( $lang->code ) || $lang->code === $current || ! Coverage::isIncomplete( $lang->code, $path ) ) {
+				$listed[] = $lang->code;
+			}
 		}
-		printf( '<link rel="alternate" hreflang="x-default" href="%s" />' . "\n", esc_url( Router::url( $url, $source->code ) ) );
+		if ( count( $listed ) < 2 ) {
+			return; // a single complete version: nothing to link (an incomplete page also drops its own links)
+		}
+		foreach ( $listed as $code ) {
+			printf( '<link rel="alternate" hreflang="%s" href="%s" />' . "\n", esc_attr( $code ), esc_url( Router::url( $url, $code ) ) );
+		}
+		$default = Settings::xDefault()->code;
+		printf( '<link rel="alternate" hreflang="x-default" href="%s" />' . "\n", esc_url( Router::url( $url, in_array( $default, $listed, true ) ? $default : Settings::source()->code ) ) );
 		if ( ! self::rankMath() ) {
 			self::printLocales();
 		}
@@ -123,6 +142,9 @@ final class Seo {
 	}
 
 	private static function isBlogPost(): bool {
+		if ( ! Settings::browserBlog() ) {
+			return false; // stored blog translations: posts are pages like any other
+		}
 		if ( null !== self::$post ) {
 			return self::$post;
 		}

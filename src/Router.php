@@ -166,6 +166,18 @@ final class Router {
 		return $out;
 	}
 
+	/** Translated language of an internal URL by its prefix (null: source language or not a site URL). */
+	public static function languageOf( string $url ): ?string {
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$base = self::basePath();
+		if ( ! str_starts_with( $path . '/', $base . '/' ) ) {
+			return null;
+		}
+		$segment = self::firstSegment( (string) substr( $path, strlen( $base ) ) );
+
+		return null !== $segment && Settings::isTarget( $segment ) ? $segment : null;
+	}
+
 	/** This page (path + query, without the legacy `lang` argument) in another language, as an absolute URL. */
 	public static function switchUrl( string $lang ): string {
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- rebuilt as a URL below.
