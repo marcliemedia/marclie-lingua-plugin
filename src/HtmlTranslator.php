@@ -1,18 +1,20 @@
 <?php
 /**
- * Translates a rendered Croatian HTML document with stored pairs (HTML5 parser of PHP 8.4, `Dom\HTMLDocument`).
+ * Translates a rendered HTML document of the source language with stored pairs (HTML5 parser of PHP 8.4,
+ * `Dom\HTMLDocument`).
  *
  * Units: an element whose own text has words and whose descendants are all inline elements (Format::INLINE)
  * is one string, inline tags included (`<p>… <a>…</a> …</p>`). Any other element is walked: its own text
- * nodes are strings one by one, its children are walked. Attributes `placeholder`, `title`, `alt`,
- * `aria-label`, the w-site.js message attributes (and the text of submit / button inputs), the `<title>` and the
- * description / Open Graph / Twitter metas are strings too.
- * Skipped: script, style, code, svg …, `[translate="no"]`, `.notranslate`, the admin bar and the Marclie Booking
- * widgets (they print their own English). Blog post parts — `[data-mlg-skip]` and the elements the page's
- * callback picks (constructor) — are skipped too and marked `lang="hr" data-mlg-browser` for the in-browser
- * translation (Blog, assets/browser-translate.js).
- * A string without a stored translation keeps its Croatian. On an English page `<html lang>` and `og:locale`
- * become English; a page that is not (a single blog post) keeps its Croatian head and language.
+ * nodes are strings one by one, its children are walked. The attributes `placeholder`, `title`, `alt`,
+ * `aria-label` (filter `marclie_lingua/attributes` adds more), the text of submit / button inputs, the `<title>`
+ * and the description / Open Graph / Twitter metas are strings too.
+ * Skipped: script, style, code, svg …, `[translate="no"]`, `.notranslate`, `[contenteditable]`, the admin bar and
+ * the selectors of filter `marclie_lingua/skip_selectors`. Blog post parts — `[data-mlg-skip]` and the elements
+ * the page's callback picks (constructor) — are skipped too and marked `lang="{source}" data-mlg-browser` for the
+ * in-browser translation (Blog, assets/browser-translate.js).
+ * A string without a stored translation keeps the source text. Internal links (`a[href]`, `area[href]`,
+ * `form[action]`) get the language prefix (Router::url). When the head is translated, `<html lang>` and
+ * `og:locale` become the target language; a page whose head is not (a single blog post) keeps the source ones.
  */
 
 namespace Marclie\Lingua;
@@ -23,14 +25,17 @@ final class HtmlTranslator {
 
 	public const SKIP_TAGS = array( 'script', 'style', 'noscript', 'template', 'textarea', 'code', 'pre', 'kbd', 'samp', 'svg', 'math', 'iframe', 'object', 'canvas', 'video', 'audio' );
 
-	public const SKIP = '[translate="no"], .notranslate, [contenteditable], #wpadminbar, [data-mbk-widget], [class*="brxe-mbk-"], [data-mbk-lazy], '
-		. '[data-mbk-search-form], [data-mbk-bookbox], [data-mbk-bookbar], [data-mbk-catalog], [data-mbk-calendar], '
-		. '[data-mbk-checkout], [data-mbk-confirmation], [data-mbk-pay-balance], [data-mbk-account]';
+	/** Never translated (filter `marclie_lingua/skip_selectors` adds selectors). */
+	public const SKIP = array( '[translate="no"]', '.notranslate', '[contenteditable]', '#wpadminbar' );
 
-	/** Attributes holding visible copy (incl. the w-site.js messages: filter chips, result counts, FAQ search, copy buttons). */
-	public const ATTRS = array(
-		'placeholder', 'title', 'alt', 'aria-label', 'data-label', 'data-result-label', 'data-result-label-one',
-		'data-result-label-zero', 'data-status-one', 'data-status-many', 'data-copy-done', 'data-copy-fail', 'data-demo-note',
+	/** Attributes holding visible copy (filter `marclie_lingua/attributes`). */
+	public const ATTRS = array( 'placeholder', 'title', 'alt', 'aria-label' );
+
+	/** Elements whose link gets the language prefix: selector => attribute. */
+	public const LINKS = array(
+		'a[href]'      => 'href',
+		'area[href]'   => 'href',
+		'form[action]' => 'action',
 	);
 
 	/** Head elements with copy: selector => attribute. */
@@ -47,18 +52,23 @@ final class HtmlTranslator {
 	/** @var list<string> */
 	private array $attrs;
 
+	private string $skip;
+
 	/** Elements already classified as blog post parts (true) or not (false). */
 	private \WeakMap $parts;
 
 	/**
 	 * @param \Closure(array<string, string>): array<string, string> $resolve hash => source of the page's
-	 *        strings → hash => stored translation ('' or missing = keep the Croatian).
-	 * @param string        $locale  `<html lang>` of the translated page.
-	 * @param bool          $english The page is English: translate `<title>` / metas, set `<html lang>` and `og:locale`.
-	 * @param \Closure|null $blog    (\Dom\Element): bool — further blog post parts of this page.
+	 *        strings → hash => stored translation ('' or missing = keep the source text).
+	 * @param Lang          $target        Language of the page.
+	 * @param Lang          $source        Language of the content.
+	 * @param bool          $translateHead Translate `<title>` / metas, set `<html lang>` and `og:locale` (false: a
+	 *                                     single blog post, whose content stays in the source language).
+	 * @param \Closure|null $blog          (\Dom\Element): bool — further blog post parts of this page.
 	 */
-	public function __construct( private \Closure $resolve, private string $locale = 'en-GB', private bool $english = true, private ?\Closure $blog = null ) {
-		$this->attrs = (array) apply_filters( 'marclie_lingua/attributes', self::ATTRS );
+	public function __construct( private \Closure $resolve, private Lang $target, private Lang $source, private bool $translateHead = true, private ?\Closure $blog = null ) {
+		$this->attrs = array_values( array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/attributes', self::ATTRS ) ) ) );
+		$this->skip  = implode( ', ', array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/skip_selectors', self::SKIP ) ) ) );
 		$this->parts = new \WeakMap();
 	}
 
@@ -68,11 +78,11 @@ final class HtmlTranslator {
 		if ( null !== $doc->body ) {
 			$this->walk( $doc->body );
 		}
-		$title = $this->english ? $doc->querySelector( 'head > title' ) : null;
+		$title = $this->translateHead ? $doc->querySelector( 'head > title' ) : null;
 		if ( null !== $title ) {
 			$this->add( 'title', $title, Format::escapeText( $title->textContent ) );
 		}
-		foreach ( $this->english ? self::HEAD : array() as $selector => $attr ) {
+		foreach ( $this->translateHead ? self::HEAD : array() as $selector => $attr ) {
 			foreach ( $doc->querySelectorAll( $selector ) as $el ) {
 				$this->add( 'attr', $el, Format::escapeText( (string) $el->getAttribute( $attr ) ), $attr );
 			}
@@ -86,12 +96,32 @@ final class HtmlTranslator {
 			}
 		}
 
-		if ( $this->english ) {
-			$doc->documentElement?->setAttribute( 'lang', $this->locale );
-			$doc->querySelector( 'meta[property="og:locale"]' )?->setAttribute( 'content', str_replace( '-', '_', $this->locale ) );
+		$this->rewriteLinks( $doc );
+		$root = $doc->documentElement;
+		$root?->setAttribute( 'data-mlg-lang', $this->target->code );
+		$root?->setAttribute( 'data-mlg-prefix', Router::basePath() . '/' . $this->target->code );
+		if ( $this->translateHead ) {
+			$root?->setAttribute( 'lang', $this->target->bcp47 );
+			$doc->querySelector( 'meta[property="og:locale"]' )?->setAttribute( 'content', $this->target->ogLocale() );
 		}
 
 		return $doc->saveHtml();
+	}
+
+	/** Internal links keep the page's language; `[data-mlg-lang]` (switcher) and `[data-mlg-no-rewrite]` keep theirs. */
+	private function rewriteLinks( \Dom\HTMLDocument $doc ): void {
+		foreach ( self::LINKS as $selector => $attr ) {
+			foreach ( $doc->querySelectorAll( $selector ) as $el ) {
+				if ( $el->hasAttribute( 'data-mlg-lang' ) || null !== $el->closest( '[data-mlg-no-rewrite]' ) ) {
+					continue;
+				}
+				$value = (string) $el->getAttribute( $attr );
+				$url   = Router::url( $value, $this->target->code );
+				if ( $url !== $value ) {
+					$el->setAttribute( $attr, $url );
+				}
+			}
+		}
 	}
 
 	/** Blog post part: left to the browser translation. */
@@ -104,7 +134,7 @@ final class HtmlTranslator {
 	}
 
 	private function skipped( \Dom\Element $el ): bool {
-		return in_array( $el->localName, self::SKIP_TAGS, true ) || $el->matches( self::SKIP ) || $this->blogPart( $el );
+		return in_array( $el->localName, self::SKIP_TAGS, true ) || ( '' !== $this->skip && $el->matches( $this->skip ) ) || $this->blogPart( $el );
 	}
 
 	private function walk( \Dom\Element $el ): void {
@@ -112,7 +142,7 @@ final class HtmlTranslator {
 			if ( $this->blogPart( $el ) ) {
 				$el->setAttribute( 'data-mlg-browser', '' );
 				if ( ! $el->hasAttribute( 'lang' ) ) {
-					$el->setAttribute( 'lang', Language::SOURCE );
+					$el->setAttribute( 'lang', $this->source->bcp47 );
 				}
 			}
 			return;

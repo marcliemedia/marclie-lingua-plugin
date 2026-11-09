@@ -1,7 +1,8 @@
 <?php
 /**
- * Site scan: requests every public page in English (loopback, anonymous), so new strings get stored and every
- * string on the site is marked as seen. Strings not seen by the last finished scan are "unused" in admin.
+ * Site scan: requests every public page in the first translated language (loopback, anonymous), so new strings
+ * get stored and every string on the site is marked as seen (strings are shared by all languages). Strings not seen
+ * by the last finished scan are "unused" in admin.
  * Scan requests carry the header X-Marclie-Lingua-Scan with a stored random token.
  */
 
@@ -80,14 +81,18 @@ final class Scanner {
 	}
 
 	/**
-	 * One page in English. Redirects are not followed: a redirecting URL has no content of its own and its
+	 * One page in the first translated language. Redirects are not followed: a redirecting URL has no content of its own and its
 	 * target is a scanned page too (a followed loopback redirect stalled inside admin-ajax on LocalWP).
 	 *
 	 * @return array{url: string, ok: bool, status: int|string}
 	 */
 	public static function fetch( string $url ): array {
+		$target = Settings::targetCodes()[0] ?? '';
+		if ( '' === $target ) {
+			return array( 'url' => $url, 'ok' => false, 'status' => __( 'No translated language is set up.', 'marclie-lingua' ) );
+		}
 		$response = wp_remote_get(
-			add_query_arg( 'lang', Language::TARGET, $url ),
+			Router::url( $url, $target ),
 			array(
 				'timeout'     => 30,
 				'redirection' => 0,

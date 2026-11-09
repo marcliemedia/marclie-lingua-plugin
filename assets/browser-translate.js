@@ -1,23 +1,27 @@
-/* Marclie Lingua — blog post parts on English pages, translated in the visitor's browser (Blog.php).
-   The server marks them `[data-mlg-browser][lang="hr"]`. With the built-in Translator API (Chrome / Edge on a
-   computer; the model runs on the device) they are translated at once when the hr → en model is already there,
-   otherwise after the visitor's first click, tap or key press (browsers download the model only after a user
-   action); no prompt is shown. Without the API the browser's own „Translate this page” covers single posts
-   (page language hr). Text nodes and alt / title / aria-label are translated; translations are cached in
-   localStorage. A part done is marked lang="en" (and the page too when it was a Croatian single post). */
+/* Marclie Lingua — blog post parts on translated pages, translated in the visitor's browser (Blog.php).
+   The server marks them `[data-mlg-browser][lang="{source}"]` and prints `window.mlgBrowser = { source, target,
+   fixes }`. With the built-in Translator API (Chrome / Edge on a computer; the model runs on the device) they are
+   translated at once when the model is already there, otherwise after the visitor's first click, tap or key press
+   (browsers download the model only after a user action); no prompt is shown. Without the API the browser's own
+   "Translate this page" covers single posts. Text nodes and alt / title / aria-label are translated; translations
+   are cached in localStorage. A part done is marked with the target language (and the page too when it was a
+   single post in the source language). */
 (function () {
   "use strict";
 
+  const cfg = window.mlgBrowser || {};
   const parts = Array.prototype.slice.call(document.querySelectorAll("[data-mlg-browser]"));
-  if (!parts.length || !("Translator" in self)) return;
+  if (!cfg.source || !cfg.target || !parts.length || !("Translator" in self)) return;
 
-  const OPTIONS = { sourceLanguage: "hr", targetLanguage: "en" };
-  const CACHE_KEY = "mlg-browser:hr-en";
+  const OPTIONS = { sourceLanguage: cfg.source, targetLanguage: cfg.target };
+  const CACHE_KEY = "mlg-browser:" + cfg.source + "-" + cfg.target;
   const CACHE_MAX = 3000;
   const ATTRS = ["alt", "title", "aria-label"];
   const SKIP = "script, style, noscript, code, pre, svg, textarea";
   const WORD = /\p{L}/u;
-  const FIXES = [[/\bCrystal Paris\b/g, "Kristal Paris"]]; // proper names the model translates
+  const FIXES = (cfg.fixes || []).map(f => {
+    try { return [new RegExp(f[0], f[1]), f[2]]; } catch (e) { return null; }
+  }).filter(Boolean);
 
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}") || {}; } catch (e) { cache = {}; }
@@ -32,10 +36,13 @@
     }, 400);
   };
 
-  // the English keeps the source's initial case (a fragment split off by a link stays lower case)
+  // the translation keeps the source's initial case (a fragment split off by a link stays lower case);
+  // English "I" stays upper case
   const keepCase = (src, out) => {
     if (/^\p{Lu}/u.test(src) && /^\p{Ll}/u.test(out)) return out[0].toUpperCase() + out.slice(1);
-    if (/^\p{Ll}/u.test(src) && /^\p{Lu}(?!\p{Lu})/u.test(out) && !/^I\b/.test(out)) return out[0].toLowerCase() + out.slice(1);
+    if (/^\p{Ll}/u.test(src) && /^\p{Lu}(?!\p{Lu})/u.test(out) && !(cfg.target === "en" && /^I\b/.test(out))) {
+      return out[0].toLowerCase() + out.slice(1);
+    }
     return out;
   };
 
@@ -75,15 +82,16 @@
       }
     }
     await Promise.all(jobs);
-    root.lang = "en";
+    root.lang = cfg.target;
   }
 
   async function run(t) {
     for (const part of parts) await translatePart(t, part);
-    // a single blog post page (Croatian head): its title and language follow the translated content
-    if (document.documentElement.lang === "hr") {
+    // a single blog post page (source-language head): its title and language follow the translated content
+    const root = document.documentElement;
+    if (root.lang.split("-")[0] === cfg.source) {
       document.title = await translateText(t, document.title);
-      document.documentElement.lang = "en";
+      root.lang = cfg.target;
     }
   }
 
