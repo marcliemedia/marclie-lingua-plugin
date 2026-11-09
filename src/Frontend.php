@@ -1,16 +1,16 @@
 <?php
 /**
- * English pages: the whole frontend document is buffered and translated (HtmlTranslator) from the stored
- * pairs. Strings met for the first time are stored as `new` (admin › Prijevodi lists them); during a site
- * scan (Scanner) every string on the page is marked as seen.
- * Blog posts are not stored as translations (Blog): their parts carry `data-mlg-skip` in the Bricks templates /
- * Card: Post component and are translated in the visitor's browser. A single post page keeps its Croatian
- * `<title>` / metas and `<html lang="hr">` (its main content is Croatian; browsers offer to translate it).
+ * Translated pages: the whole frontend document is buffered and translated (HtmlTranslator) from the stored pairs
+ * of the request's language. Strings met for the first time are stored (admin › Translations lists them as
+ * untranslated); during a site scan (Scanner) every string on the page is marked as seen.
+ * Blog posts are not stored as translations (Blog): parts marked `data-mlg-skip` are translated in the visitor's
+ * browser. A single post page keeps its source `<title>` / metas and `<html lang>` (its main content stays in the
+ * source language; browsers offer to translate it).
  *
  * Strings printed outside the HTML (e.g. a script's JSON) go through the filters
- *   apply_filters( 'marclie_lingua_text', 'Hrvatski tekst' )        → English text (or the Croatian)
- *   apply_filters( 'marclie_lingua_texts', [ 'key' => 'Tekst', … ] ) → same keys, English values
- * which return their input unchanged when the plugin is off or the page is Croatian.
+ *   apply_filters( 'marclie_lingua_text', 'Text' )                   → translated text (or the source text)
+ *   apply_filters( 'marclie_lingua_texts', [ 'key' => 'Text', … ] ) → same keys, translated values
+ * which return their input unchanged when the plugin is off or the page is in the source language.
  */
 
 namespace Marclie\Lingua;
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Frontend {
 
-	/** Single blog post: Croatian `<title>`, metas and page language (decided before output, while the query is current). */
+	/** Single blog post: source `<title>`, metas and page language (decided before output, while the query is current). */
 	private static bool $post = false;
 
 	/** Archive or blog index: the items of Bricks' own Posts element that link to a blog post are left to the browser. */
@@ -32,9 +32,9 @@ final class Frontend {
 		add_filter( 'marclie_lingua_texts', array( self::class, 'texts' ) );
 	}
 
-	/** A frontend HTML page in English. */
+	/** A frontend HTML page in a translated language. */
 	public static function active(): bool {
-		return Language::isTarget()
+		return Language::isTranslated()
 			&& ! is_admin()
 			&& ! wp_doing_ajax()
 			&& ! wp_is_json_request()
@@ -59,14 +59,15 @@ final class Frontend {
 		try {
 			$translator = new HtmlTranslator(
 				self::resolve( ... ),
-				Language::TARGET_LOCALE,
+				Language::currentLang(),
+				Settings::source(),
 				! self::$post,
 				self::$archive ? self::blogItem( ... ) : null
 			);
 
 			return $translator->translate( $html );
 		} catch ( \Throwable $e ) {
-			error_log( 'Marclie Lingua: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- keep the Croatian page, report why.
+			error_log( 'Marclie Lingua: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- keep the source page, report why.
 			return $html;
 		}
 	}
@@ -83,13 +84,13 @@ final class Frontend {
 	}
 
 	/**
-	 * Stored translations of the page's strings; unknown strings are stored as `new`.
+	 * Stored translations of the page's strings in the request's language; unknown strings are stored.
 	 *
 	 * @param array<string, string> $sources hash => source
 	 * @return array<string, string> hash => translation
 	 */
 	public static function resolve( array $sources ): array {
-		$found   = Store::lookup( array_keys( $sources ) );
+		$found   = Store::lookup( array_keys( $sources ), Language::current() );
 		$missing = array_diff_key( $sources, $found );
 		if ( $missing ) {
 			Store::register( $missing, self::path() );
@@ -110,7 +111,7 @@ final class Frontend {
 	 * @return mixed
 	 */
 	public static function texts( $texts ) {
-		if ( ! is_array( $texts ) || ! Language::isTarget() || is_admin() ) {
+		if ( ! is_array( $texts ) || ! Language::isTranslated() || is_admin() ) {
 			return $texts;
 		}
 		$sources = array();

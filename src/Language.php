@@ -1,32 +1,42 @@
 <?php
 /**
- * Visitor language. Source = the site's Croatian, target = English. The language is Marclie Booking's
- * (`?lang=en` → cookie `mbk_lang`, header language menu), so the booking widgets and the rest of the page
- * always agree; filter `marclie_lingua/language` for another source of truth.
+ * Language of the current request: a translated language when the URL starts with its prefix (Router), else the
+ * source language. `with()` runs code as another language (e-mails, cron: URLs built in that language).
  */
 
 namespace Marclie\Lingua;
-
-use Marclie\Booking\I18n\LanguageAdapter;
 
 defined( 'ABSPATH' ) || exit;
 
 final class Language {
 
-	public const SOURCE = 'hr';
-
-	public const TARGET = 'en';
-
-	/** `<html lang>` of the English pages (British English, research/en-glossary.md). */
-	public const TARGET_LOCALE = 'en-GB';
+	private static ?string $forced = null;
 
 	public static function current(): string {
-		$lang = class_exists( LanguageAdapter::class ) ? LanguageAdapter::current() : self::SOURCE;
-
-		return (string) apply_filters( 'marclie_lingua/language', $lang );
+		return self::$forced ?? Router::current() ?? Settings::source()->code;
 	}
 
-	public static function isTarget(): bool {
-		return self::TARGET === self::current();
+	public static function currentLang(): Lang {
+		return Settings::lang( self::current() ) ?? Settings::source();
+	}
+
+	/** The request is in a translated language. */
+	public static function isTranslated(): bool {
+		return self::current() !== Settings::source()->code;
+	}
+
+	/**
+	 * @template T
+	 * @param callable(): T $callback
+	 * @return T
+	 */
+	public static function with( string $code, callable $callback ): mixed {
+		$previous     = self::$forced;
+		self::$forced = null !== Settings::lang( $code ) ? $code : Settings::source()->code;
+		try {
+			return $callback();
+		} finally {
+			self::$forced = $previous;
+		}
 	}
 }

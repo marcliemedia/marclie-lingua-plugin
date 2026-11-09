@@ -1,13 +1,16 @@
 <?php
 /**
- * Admin › Prijevodi (Translations): edit the Croatian → English pairs, scan the site for new strings.
- * One POST form saves every changed textarea of the page (tags must match the source) or bulk-deletes.
+ * Admin › Translations: edit the translations of the site's texts, one translated language at a time (tabs), and
+ * scan the site for new texts. One POST form saves every changed textarea of the page (tags must match the source)
+ * or bulk-deletes.
  */
 
 namespace Marclie\Lingua\Admin;
 
 use Marclie\Lingua\Format;
+use Marclie\Lingua\Lang;
 use Marclie\Lingua\Scanner;
+use Marclie\Lingua\Settings;
 use Marclie\Lingua\Store;
 
 defined( 'ABSPATH' ) || exit;
@@ -22,6 +25,19 @@ final class Page {
 
 	public static function capability(): string {
 		return (string) apply_filters( 'marclie_lingua/capability', 'manage_options' );
+	}
+
+	/** Translated language being edited (`mlg_lang`, default the first one); null when none is set up. */
+	public static function lang(): ?Lang {
+		$targets = Settings::targets();
+		$code    = isset( $_REQUEST['mlg_lang'] ) ? sanitize_key( wp_unslash( $_REQUEST['mlg_lang'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list state.
+		foreach ( $targets as $lang ) {
+			if ( $lang->code === $code ) {
+				return $lang;
+			}
+		}
+
+		return $targets[0] ?? null;
 	}
 
 	public static function hooks(): void {
@@ -86,6 +102,7 @@ final class Page {
 	private static function viewUrl( array $extra = array() ): string {
 		$args = array(
 			'page'     => self::SLUG,
+			'mlg_lang' => self::lang()?->code ?? '',
 			'mlg_view' => StringsTable::view(),
 			's'        => StringsTable::search(),
 			'paged'    => isset( $_REQUEST['paged'] ) ? max( 1, (int) $_REQUEST['paged'] ) : 1, // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- list state.
@@ -98,6 +115,11 @@ final class Page {
 		check_admin_referer( self::NONCE, 'mlg_nonce' );
 		if ( ! current_user_can( self::capability() ) ) {
 			wp_die( esc_html__( 'You are not allowed to edit translations.', 'marclie-lingua' ), 403 );
+		}
+		$lang = self::lang();
+		if ( null === $lang ) {
+			wp_safe_redirect( self::viewUrl() );
+			exit;
 		}
 
 		$action = sanitize_key( wp_unslash( $_POST['action'] ?? '-1' ) );
@@ -121,7 +143,7 @@ final class Page {
 			if ( md5( $value ) === (string) ( $was[ $id ] ?? '' ) ) {
 				continue;
 			}
-			$row = Store::find( $id );
+			$row = Store::find( $id, $lang->code );
 			if ( null === $row ) {
 				continue;
 			}
@@ -129,7 +151,7 @@ final class Page {
 				$invalid[] = array( (string) $row['source'], $value );
 				continue;
 			}
-			Store::saveTranslation( $id, $value );
+			Store::saveTranslation( $id, $lang->code, $value );
 			++$saved;
 		}
 		if ( $invalid ) {
@@ -140,15 +162,38 @@ final class Page {
 	}
 
 	public static function render(): void {
-		$table = new StringsTable();
-		$table->prepare_items();
-		$last = Scanner::lastScan();
+		$lang   = self::lang();
+		$source = Settings::source();
 		?>
 		<div class="wrap mlg">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Translations', 'marclie-lingua' ); ?></h1>
 			<hr class="wp-header-end">
-			<?php self::notices(); ?>
-			<p class="mlg-intro"><?php esc_html_e( 'The English version of the site is the Croatian page with these translations. Each row is one text from the site; an empty translation shows the Croatian text. Keep the tags such as <strong>…</strong> or <a>…</a> from the Croatian text in the translation: they carry the bold text, links and icons.', 'marclie-lingua' ); ?></p>
+			<?php
+			if ( null === $lang ) {
+				printf(
+					'<div class="notice notice-info"><p>%1$s <a href="%2$s">%3$s</a></p></div></div>',
+					esc_html__( 'No translated language is set up yet.', 'marclie-lingua' ),
+					esc_url( admin_url( 'admin.php?page=' . SettingsPage::SLUG ) ),
+					esc_html__( 'Add a language in the settings.', 'marclie-lingua' )
+				);
+				return;
+			}
+			$table = new StringsTable( $source, $lang );
+			$table->prepare_items();
+			$last = Scanner::lastScan();
+			self::notices( $source, $lang );
+			self::tabs( $lang );
+			?>
+			<p class="mlg-intro">
+				<?php
+				printf(
+					/* translators: 1: source language name, 2: translated language name. */
+					esc_html__( 'Each row is one text of the site in %1$s with its %2$s translation; an empty translation shows the %1$s text. Keep the tags such as <strong>…</strong> or <a>…</a> of the text in the translation: they carry the bold text, links and icons.', 'marclie-lingua' ),
+					esc_html( $source->name ),
+					esc_html( $lang->name )
+				);
+				?>
+			</p>
 			<div class="mlg-scan">
 				<button type="button" class="button" data-mlg-scan><?php esc_html_e( 'Scan the site', 'marclie-lingua' ); ?></button>
 				<span class="mlg-scan__status" data-mlg-scan-status role="status">
@@ -165,6 +210,7 @@ final class Page {
 			<?php $table->views(); ?>
 			<form method="get" class="mlg-search">
 				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
+				<input type="hidden" name="mlg_lang" value="<?php echo esc_attr( $lang->code ); ?>">
 				<input type="hidden" name="mlg_view" value="<?php echo esc_attr( StringsTable::view() ); ?>">
 				<?php $table->search_box( __( 'Search texts', 'marclie-lingua' ), 'mlg-search' ); ?>
 			</form>
@@ -177,7 +223,26 @@ final class Page {
 		<?php
 	}
 
-	private static function notices(): void {
+	/** One tab per translated language (none when there is only one). */
+	private static function tabs( Lang $current ): void {
+		$targets = Settings::targets();
+		if ( count( $targets ) < 2 ) {
+			return;
+		}
+		echo '<nav class="nav-tab-wrapper mlg-tabs" aria-label="' . esc_attr__( 'Translated languages', 'marclie-lingua' ) . '">';
+		foreach ( $targets as $lang ) {
+			printf(
+				'<a href="%1$s" class="nav-tab%2$s"%3$s>%4$s</a>',
+				esc_url( add_query_arg( array( 'page' => self::SLUG, 'mlg_lang' => $lang->code ), admin_url( 'admin.php' ) ) ),
+				$lang->code === $current->code ? ' nav-tab-active' : '',
+				$lang->code === $current->code ? ' aria-current="page"' : '',
+				esc_html( $lang->name )
+			);
+		}
+		echo '</nav>';
+	}
+
+	private static function notices( Lang $source, Lang $lang ): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- display of redirect results.
 		if ( isset( $_GET['mlg_saved'] ) ) {
 			$n = (int) $_GET['mlg_saved'];
@@ -193,9 +258,9 @@ final class Page {
 			$key     = 'mlg_invalid_' . get_current_user_id();
 			$invalid = (array) get_transient( $key );
 			delete_transient( $key );
-			echo '<div class="notice notice-error"><p>' . esc_html__( 'Not saved: the translation must use the same tags as the Croatian text, each closed.', 'marclie-lingua' ) . '</p><ul class="mlg-invalid">';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Not saved: the translation must use the same tags as the original text, each closed.', 'marclie-lingua' ) . '</p><ul class="mlg-invalid">';
 			foreach ( $invalid as $pair ) {
-				printf( '<li><span lang="hr">%1$s</span><br><span lang="en">%2$s</span></li>', esc_html( (string) ( $pair[0] ?? '' ) ), esc_html( (string) ( $pair[1] ?? '' ) ) );
+				printf( '<li><span lang="%3$s">%1$s</span><br><span lang="%4$s">%2$s</span></li>', esc_html( (string) ( $pair[0] ?? '' ) ), esc_html( (string) ( $pair[1] ?? '' ) ), esc_attr( $source->bcp47 ), esc_attr( $lang->bcp47 ) );
 			}
 			echo '</ul></div>';
 		}

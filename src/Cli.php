@@ -1,6 +1,7 @@
 <?php
 /**
- * WP-CLI: `wp marclie-lingua <scan|export|import|seed>`.
+ * WP-CLI: `wp marclie-lingua <scan|export|import|seed>`. `--lang=<code>` picks the translated language; it may
+ * be left out when the site has only one.
  */
 
 namespace Marclie\Lingua;
@@ -10,12 +11,15 @@ defined( 'ABSPATH' ) || exit;
 final class Cli {
 
 	/**
-	 * Requests every public page in English: stores new strings, marks every string as seen.
+	 * Requests every public page in the first translated language: stores new texts, marks every text as seen.
 	 *
 	 * ## EXAMPLES
 	 *     wp marclie-lingua scan
 	 */
 	public function scan(): void {
+		if ( ! Settings::targets() ) {
+			\WP_CLI::error( 'No translated language is set up (Translations › Settings).' );
+		}
 		$urls = Scanner::urls();
 		Scanner::start();
 		$bad = 0;
@@ -28,57 +32,63 @@ final class Cli {
 			\WP_CLI::error( sprintf( '%d pages failed; the scan was not recorded.', $bad ) );
 		}
 		Scanner::finish();
-		\WP_CLI::success( sprintf( '%d pages scanned. Strings: %d, untranslated: %d.', count( $urls ), Store::count( 'all' ), Store::count( 'new' ) ) );
+		$untranslated = array();
+		foreach ( Settings::targetCodes() as $code ) {
+			$untranslated[] = $code . ' ' . Store::count( 'new', $code );
+		}
+		\WP_CLI::success( sprintf( '%d pages scanned. Texts: %d; untranslated: %s.', count( $urls ), Store::count( 'all', Settings::source()->code ), implode( ', ', $untranslated ) ) );
 	}
 
 	/**
-	 * Writes stored strings as JSON (list of {source, translation}).
+	 * Writes the translations of one language as JSON (list of {source, translation}).
 	 *
 	 * ## OPTIONS
 	 * [<file>]
 	 * : Output file; default STDOUT.
 	 *
+	 * [--lang=<code>]
+	 * : Translated language (required when the site has several).
+	 *
 	 * [--status=<status>]
-	 * : Only rows with this status (auto, edited).
+	 * : Only translations with this status (auto, edited).
 	 *
 	 * [--untranslated]
-	 * : Untranslated strings instead: {source, path, translation: ""}.
+	 * : Texts not translated into the language yet: {source, path, translation: ""}.
 	 *
 	 * [--seed]
-	 * : Write every translated pair to the plugin's data/en.json.
+	 * : Write every translation of the language to the plugin's data/{code}.json.
 	 *
 	 * @param list<string>          $args
 	 * @param array<string, string> $assoc
 	 */
 	public function export( array $args, array $assoc ): void {
-		global $wpdb;
-
-		if ( isset( $assoc['untranslated'] ) ) {
-			$rows = $wpdb->get_results( 'SELECT source, path FROM ' . Store::table() . " WHERE translation = '' OR translation IS NULL ORDER BY path, id", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- table name.
-			$data = array_map( static fn( array $r ): array => array( 'source' => $r['source'], 'path' => $r['path'], 'translation' => '' ), (array) $rows );
-		} else {
-			$data = Store::pairs( isset( $assoc['seed'] ) ? '' : (string) ( $assoc['status'] ?? '' ) );
-		}
+		$lang = self::lang( $assoc );
+		$data = isset( $assoc['untranslated'] )
+			? Store::untranslated( $lang )
+			: Store::pairs( $lang, isset( $assoc['seed'] ) ? '' : (string) ( $assoc['status'] ?? '' ) );
 		$json = (string) wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-		$file = isset( $assoc['seed'] ) ? Install::seedFile() : ( $args[0] ?? '' );
+		$file = isset( $assoc['seed'] ) ? Install::seedFile( $lang ) : ( $args[0] ?? '' );
 		if ( '' === $file ) {
 			\WP_CLI::line( $json );
 			return;
 		}
 		wp_mkdir_p( dirname( $file ) );
 		file_put_contents( $file, $json . "\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- CLI export.
-		\WP_CLI::success( sprintf( '%d strings written to %s.', count( $data ), $file ) );
+		\WP_CLI::success( sprintf( '%d texts written to %s.', count( $data ), $file ) );
 	}
 
 	/**
-	 * Imports a JSON list of {source, translation}: adds new sources, fills untranslated ones.
+	 * Imports a JSON list of {source, translation} into one language: adds new texts, fills untranslated ones.
 	 *
 	 * ## OPTIONS
 	 * <file>
 	 * : JSON file.
 	 *
+	 * [--lang=<code>]
+	 * : Translated language (required when the site has several).
+	 *
 	 * [--status=<status>]
-	 * : Status of the imported rows (auto or edited). Default: auto.
+	 * : Status of the imported translations (auto or edited). Default: auto.
 	 *
 	 * [--overwrite]
 	 * : Also replace translations that already exist.
@@ -87,18 +97,39 @@ final class Cli {
 	 * @param array<string, string> $assoc
 	 */
 	public function import( array $args, array $assoc ): void {
+		$lang  = self::lang( $assoc );
 		$pairs = json_decode( (string) file_get_contents( $args[0] ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local file.
 		if ( ! is_array( $pairs ) ) {
 			\WP_CLI::error( 'Not a JSON list.' );
 		}
 		$status = in_array( $assoc['status'] ?? '', array( 'auto', 'edited' ), true ) ? $assoc['status'] : 'auto';
-		$stats  = Store::import( $pairs, $status, isset( $assoc['overwrite'] ) );
+		$stats  = Store::import( $pairs, $lang, $status, isset( $assoc['overwrite'] ) );
 		\WP_CLI::success( sprintf( 'Added %d, updated %d, skipped %d.', $stats['added'], $stats['updated'], $stats['skipped'] ) );
 	}
 
-	/** Imports the shipped translations (data/en.json) without replacing existing ones. */
-	public function seed(): void {
-		$stats = Install::importSeed();
+	/**
+	 * Imports the shipped translations (data/{code}.json) without replacing existing ones.
+	 *
+	 * ## OPTIONS
+	 * [--lang=<code>]
+	 * : Translated language (required when the site has several).
+	 *
+	 * @param list<string>          $args
+	 * @param array<string, string> $assoc
+	 */
+	public function seed( array $args, array $assoc ): void {
+		$stats = Install::importSeed( self::lang( $assoc ) );
 		\WP_CLI::success( sprintf( 'Added %d, updated %d, skipped %d.', $stats['added'], $stats['updated'], $stats['skipped'] ) );
+	}
+
+	/** @param array<string, string> $assoc */
+	private static function lang( array $assoc ): string {
+		$codes = Settings::targetCodes();
+		$lang  = (string) ( $assoc['lang'] ?? ( 1 === count( $codes ) ? $codes[0] : '' ) );
+		if ( ! in_array( $lang, $codes, true ) ) {
+			\WP_CLI::error( sprintf( 'Choose a translated language with --lang=<code> (%s).', $codes ? implode( ', ', $codes ) : 'none set up' ) );
+		}
+
+		return $lang;
 	}
 }

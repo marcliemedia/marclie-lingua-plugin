@@ -1,11 +1,14 @@
 <?php
 /**
- * Admin list of string pairs: Croatian source (read-only), English textarea, status. Views by status,
- * search (source, translation, page), pagination, bulk delete. Saving is done by Page (one form).
+ * Admin list of the site's texts in one translated language: source text (read-only), translation textarea,
+ * status. Views by status, search (source, translation, page), pagination, bulk delete. Saving is done by Page
+ * (one form).
  */
 
 namespace Marclie\Lingua\Admin;
 
+use Marclie\Lingua\Lang;
+use Marclie\Lingua\Router;
 use Marclie\Lingua\Scanner;
 use Marclie\Lingua\Store;
 
@@ -17,7 +20,7 @@ if ( ! class_exists( '\WP_List_Table' ) ) {
 
 final class StringsTable extends \WP_List_Table {
 
-	public function __construct() {
+	public function __construct( private Lang $source, private Lang $lang ) {
 		parent::__construct(
 			array(
 				'singular' => 'mlg-string',
@@ -40,8 +43,8 @@ final class StringsTable extends \WP_List_Table {
 	public function get_columns() {
 		return array(
 			'cb'          => '<input type="checkbox" />',
-			'source'      => esc_html__( 'Croatian', 'marclie-lingua' ),
-			'translation' => esc_html__( 'English', 'marclie-lingua' ),
+			'source'      => esc_html( $this->source->name ),
+			'translation' => esc_html( $this->lang->name ),
 			'status'      => esc_html__( 'Status', 'marclie-lingua' ),
 		);
 	}
@@ -65,10 +68,10 @@ final class StringsTable extends \WP_List_Table {
 		foreach ( $labels as $view => $label ) {
 			$views[ $view ] = sprintf(
 				'<a href="%1$s"%2$s>%3$s <span class="count">(%4$s)</span></a>',
-				esc_url( add_query_arg( array( 'page' => Page::SLUG, 'mlg_view' => $view ), admin_url( 'admin.php' ) ) ),
+				esc_url( add_query_arg( array( 'page' => Page::SLUG, 'mlg_lang' => $this->lang->code, 'mlg_view' => $view ), admin_url( 'admin.php' ) ) ),
 				$view === $current ? ' class="current" aria-current="page"' : '',
 				esc_html( $label ),
-				esc_html( number_format_i18n( Store::count( $view ) ) )
+				esc_html( number_format_i18n( Store::count( $view, $this->lang->code ) ) )
 			);
 		}
 
@@ -79,10 +82,10 @@ final class StringsTable extends \WP_List_Table {
 		$perPage = $this->get_items_per_page( 'mlg_per_page', 50 );
 		$view    = self::view();
 		$search  = self::search();
-		$total   = Store::count( $view, $search );
+		$total   = Store::count( $view, $this->lang->code, $search );
 
 		$this->_column_headers = array( $this->get_columns(), array(), array() );
-		$this->items           = Store::page( $view, $search, $perPage, $this->get_pagenum() );
+		$this->items           = Store::page( $view, $this->lang->code, $search, $perPage, $this->get_pagenum() );
 		$this->set_pagination_args(
 			array(
 				'total_items' => $total,
@@ -106,16 +109,17 @@ final class StringsTable extends \WP_List_Table {
 		$page = '' !== $path && str_starts_with( $path, '/' )
 			? sprintf(
 				'<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
-				esc_url( add_query_arg( 'lang', 'en', home_url( $path ) ) ),
+				esc_url( Router::url( home_url( $path ), $this->lang->code ) ),
 				esc_html( $path )
 			)
 			: esc_html( '' !== $path ? $path : '—' );
 
 		return sprintf(
-			'<div class="mlg-source" lang="hr">%1$s</div><div class="mlg-meta">%2$s %3$s</div>',
+			'<div class="mlg-source" lang="%4$s">%1$s</div><div class="mlg-meta">%2$s %3$s</div>',
 			esc_html( (string) $item['source'] ),
 			esc_html__( 'Page:', 'marclie-lingua' ),
-			$page
+			$page,
+			esc_attr( $this->source->bcp47 )
 		);
 	}
 
@@ -126,12 +130,14 @@ final class StringsTable extends \WP_List_Table {
 		$length      = max( mb_strlen( (string) $item['source'] ), mb_strlen( $translation ) );
 
 		return sprintf(
-			'<label class="screen-reader-text" for="mlg-t-%1$d">%2$s</label><textarea class="large-text mlg-translation" id="mlg-t-%1$d" name="mlg_t[%1$d]" rows="%3$d" lang="en">%4$s</textarea><input type="hidden" name="mlg_was[%1$d]" value="%5$s" />',
+			'<label class="screen-reader-text" for="mlg-t-%1$d">%2$s</label><textarea class="large-text mlg-translation" id="mlg-t-%1$d" name="mlg_t[%1$d]" rows="%3$d" lang="%6$s">%4$s</textarea><input type="hidden" name="mlg_was[%1$d]" value="%5$s" />',
 			$id,
-			esc_html__( 'English translation', 'marclie-lingua' ),
+			/* translators: %s: language name. */
+			esc_html( sprintf( __( 'Translation (%s)', 'marclie-lingua' ), $this->lang->name ) ),
 			max( 1, min( 12, (int) ceil( $length / 70 ) ) ),
 			esc_textarea( $translation ),
-			esc_attr( md5( $translation ) )
+			esc_attr( md5( $translation ) ),
+			esc_attr( $this->lang->bcp47 )
 		);
 	}
 
