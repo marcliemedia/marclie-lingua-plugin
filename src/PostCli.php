@@ -115,7 +115,12 @@ final class PostCli {
 			foreach ( self::structureWarnings( $post->post_content, (string) $translation['content'] ) as $warning ) {
 				\WP_CLI::warning( sprintf( 'Post %d (%s): %s', $id, $lang, $warning ) );
 			}
-			$row = PostTranslations::save( $id, $lang, $translation, isset( $assoc['publish'] ) ? 'published' : ( PostTranslations::get( $id, $lang )['status'] ?? 'draft' ) );
+			// the translation was made from the exported source: if the post changed since, it stays "needs review"
+			$basedOn = is_array( $item['source'] ?? null ) ? (array) $item['source'] : null;
+			if ( null !== $basedOn && PostTranslations::snapshot( $post ) !== array_intersect_key( array_merge( array( 'title' => '', 'content' => '', 'excerpt' => '' ), $basedOn ), array( 'title' => 1, 'content' => 1, 'excerpt' => 1 ) ) ) {
+				\WP_CLI::warning( sprintf( 'Post %d (%s) was edited after the export: the translation is marked "Needs review".', $id, $lang ) );
+			}
+			$row = PostTranslations::save( $id, $lang, $translation, isset( $assoc['publish'] ) ? 'published' : ( PostTranslations::get( $id, $lang )['status'] ?? 'draft' ), $basedOn );
 			\WP_CLI::log( sprintf( '%d %s %s → %s', $id, $lang, $row['status'], Router::url( (string) get_permalink( $id ), $lang ) ) );
 			++$saved;
 		}

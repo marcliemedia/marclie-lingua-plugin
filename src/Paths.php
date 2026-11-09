@@ -25,6 +25,7 @@ final class Paths {
 		add_action( 'marclie_lingua/post_translation_saved', array( self::class, 'rebuild' ) );
 		add_action( 'save_post', array( self::class, 'postSaved' ), 20, 2 );
 		add_action( 'update_option_permalink_structure', array( self::class, 'rebuild' ) );
+		add_action( 'edited_term', array( self::class, 'rebuild' ) ); // %category% permalinks
 		add_action( 'update_option_' . Settings::OPTION, array( self::class, 'rebuild' ) );
 	}
 
@@ -37,6 +38,13 @@ final class Paths {
 
 	public static function rebuild(): void {
 		global $wpdb;
+
+		if ( ! did_action( 'init' ) ) { // permalinks need the rewrite setup (e.g. settings saved on plugins_loaded)
+			if ( ! has_action( 'init', array( self::class, 'rebuild' ) ) ) {
+				add_action( 'init', array( self::class, 'rebuild' ), 99 );
+			}
+			return;
+		}
 
 		$to  = array();
 		$old = array();
@@ -51,12 +59,17 @@ final class Paths {
 				if ( null === $source ) {
 					continue;
 				}
-				$lang = (string) $row['lang'];
+				$lang   = (string) $row['lang'];
+				$source = self::encoding( $source );
 				if ( '' !== (string) $row['slug'] ) {
-					$to[ $lang ][ $source ] = self::withSlug( $source, $post->post_name, (string) $row['slug'] );
+					$to[ $lang ][ $source ] = self::encoding( self::withSlug( $source, $post->post_name, (string) $row['slug'] ) );
 				}
 				foreach ( (array) json_decode( (string) $row['previous_slugs'], true ) as $slug ) {
-					$old[ $lang ][ self::withSlug( $source, $post->post_name, (string) $slug ) ] = $source;
+					$former = self::encoding( self::withSlug( $source, $post->post_name, (string) $slug ) );
+					// a former slug that is now another post's own URL is that post's, not a redirect
+					if ( 0 === url_to_postid( home_url( $former ) ) ) {
+						$old[ $lang ][ $former ] = $source;
+					}
 				}
 			}
 		}
@@ -96,15 +109,24 @@ final class Paths {
 	/** A source path requested in `$lang` whose post has a translated slug there, or a former translated slug: the
 	 *  current translated path to redirect to (null: nothing to redirect). */
 	public static function redirect( string $lang, string $path ): ?string {
-		$map    = self::map();
+		$map = self::map();
+		if ( null !== self::lookup( $map['from'][ $lang ] ?? array(), $path ) ) {
+			return null; // a live translated path
+		}
 		$source = self::lookup( $map['old'][ $lang ] ?? array(), $path ) ?? $path;
 		$target = self::lookup( $map['to'][ $lang ] ?? array(), $source );
 
 		return null !== $target && $target !== $path ? $target : null;
 	}
 
+	/** Percent-encoding with lower-case hex (as in permalinks), whatever the browser sent. */
+	private static function encoding( string $path ): string {
+		return (string) preg_replace_callback( '/%[0-9A-F]{2}/', static fn( array $m ): string => strtolower( $m[0] ), $path );
+	}
+
 	/** Same path with or without its trailing slash; keeps the caller's form. */
 	private static function lookup( array $paths, string $path ): ?string {
+		$path = self::encoding( $path );
 		if ( isset( $paths[ $path ] ) ) {
 			return (string) $paths[ $path ];
 		}

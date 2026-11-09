@@ -4,7 +4,8 @@
  *
  * DB 1 → 2 (plugin 0.1 → 0.2): translations move from `mlg_strings.translation/status` to `mlg_translations`
  * (language `en`: 0.1 translated into English only); settings for 0.1 sites = source `hr`, target `en`.
- * DB 2 → 3 (0.3): table `mlg_post_translations` (whole-post translations, PostTranslations).
+ * DB 2 → 3 (0.3): table `mlg_post_translations` (whole-post translations, PostTranslations); 0.2.x blog modes
+ * keep their behaviour (`stored` → `strings`).
  * Seed files `data/{code}.json` (list of {source, translation}) are imported as `auto` when a site is installed
  * and when a language is added; `wp marclie-lingua export --seed --lang=<code>` writes them.
  */
@@ -77,8 +78,11 @@ final class Install {
 			return;
 		}
 		delete_transient( self::ERROR_TRANSIENT );
-		if ( null === get_option( Settings::OPTION, null ) ) {
+		$stored = get_option( Settings::OPTION, null );
+		if ( null === $stored ) {
 			Settings::save( Settings::defaults() );
+		} elseif ( 2 === $from && is_array( $stored ) ) {
+			Settings::save( Settings::get() ); // 0.2.x blog modes: `stored` → `strings`, missing → `browser`
 		}
 		update_option( self::VERSION_OPTION, self::DB_VERSION, true );
 		if ( 0 === $from ) {

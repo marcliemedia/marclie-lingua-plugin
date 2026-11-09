@@ -54,7 +54,7 @@ final class HtmlTranslator {
 
 	private string $skip;
 
-	/** @var array<string, true> normalized plain texts already in the page's language */
+	/** @var array<string, true> plain texts already in the page's language (Format::loose) */
 	private array $owned = array();
 
 	/** Comment pair around whole-post content (PostRenderer): everything between them is left as it is. */
@@ -94,7 +94,7 @@ final class HtmlTranslator {
 		private bool $headStrings = true
 	) {
 		foreach ( $owned as $text ) {
-			$this->owned[ Format::normalize( (string) $text ) ] = true;
+			$this->owned[ Format::loose( (string) $text ) ] = true;
 		}
 		$this->attrs = array_values( array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/attributes', self::ATTRS ) ) ) );
 		$this->skip  = implode( ', ', array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/skip_selectors', self::SKIP ) ) ) );
@@ -187,7 +187,7 @@ final class HtmlTranslator {
 			return;
 		}
 		$this->attributes( $el );
-		if ( ! self::hasDocMarker( $el ) && $this->isUnit( $el ) ) {
+		if ( ! self::hasDocMarker( $el ) && $this->isUnit( $el ) && ! $this->holdsOwned( $el ) ) {
 			$this->add( 'unit', $el, $this->serialize( $el ) );
 			foreach ( $el->querySelectorAll( '*' ) as $inner ) {
 				$this->attributes( $inner );
@@ -207,6 +207,28 @@ final class HtmlTranslator {
 				$this->walk( $child );
 			}
 		}
+	}
+
+	/**
+	 * The element's text contains an owned text with something around it (e.g. an excerpt followed by a "read more"
+	 * link in the same paragraph): its children are taken one by one instead, so the owned part stays as it is and
+	 * the rest is translated.
+	 */
+	private function holdsOwned( \Dom\Element $el ): bool {
+		if ( ! $this->owned ) {
+			return false;
+		}
+		$text = Format::loose( (string) $el->textContent );
+		if ( isset( $this->owned[ $text ] ) ) {
+			return false; // exactly owned: add() skips it as a whole
+		}
+		foreach ( $this->owned as $owned => $true ) {
+			if ( mb_strlen( $owned ) >= 12 && str_contains( $text, $owned ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static function hasDocMarker( \Dom\Element $el ): bool {
@@ -270,7 +292,7 @@ final class HtmlTranslator {
 
 	private function add( string $kind, \Dom\Node $node, string $raw, string $attr = '' ): void {
 		$source = Format::normalize( $raw );
-		if ( '' === $source || ! Format::hasWords( Format::plain( $source ) ) || isset( $this->owned[ Format::normalize( Format::plain( $source ) ) ] ) ) {
+		if ( '' === $source || ! Format::hasWords( Format::plain( $source ) ) || isset( $this->owned[ Format::loose( Format::plain( $source ) ) ] ) ) {
 			return;
 		}
 		$hash                   = Format::hash( $source );

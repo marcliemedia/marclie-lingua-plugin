@@ -80,6 +80,27 @@ final class PostTranslations {
 		return self::$cache[ $postId ];
 	}
 
+	/**
+	 * Loads the translations of several posts in one query (lists of posts).
+	 *
+	 * @param list<int> $postIds
+	 */
+	public static function prime( array $postIds ): void {
+		global $wpdb;
+
+		$ids = array_values( array_diff( array_unique( array_map( 'intval', $postIds ) ), array_keys( self::$cache ) ) );
+		if ( ! $ids ) {
+			return;
+		}
+		foreach ( $ids as $id ) {
+			self::$cache[ $id ] = array();
+		}
+		$rows = $wpdb->get_results( 'SELECT * FROM ' . self::table() . ' WHERE post_id IN (' . implode( ',', $ids ) . ')', ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared -- table name + integers.
+		foreach ( (array) $rows as $row ) {
+			self::$cache[ (int) $row['post_id'] ][ (string) $row['lang'] ] = self::decode( $row );
+		}
+	}
+
 	/** @return array<string, mixed>|null */
 	public static function get( int $postId, string $lang ): ?array {
 		return self::forPost( $postId )[ $lang ] ?? null;
@@ -94,12 +115,15 @@ final class PostTranslations {
 
 	/**
 	 * Saves a translation. Slug: sanitized and made unique for the language; a published translation that changes
-	 * its slug remembers the old one. The source snapshot is refreshed (saving = the translation matches the post).
+	 * its slug remembers the old one. The source snapshot is refreshed (saving = the translation matches the post),
+	 * unless `$basedOn` gives the source the translation was made from (an import of an older export): then a post
+	 * edited since stays "outdated".
 	 *
-	 * @param array<string, mixed> $fields Subset of FIELDS.
+	 * @param array<string, mixed>                                  $fields  Subset of FIELDS.
+	 * @param array{title?: string, content?: string, excerpt?: string}|null $basedOn
 	 * @return array<string, mixed> The saved row.
 	 */
-	public static function save( int $postId, string $lang, array $fields, string $status ): array {
+	public static function save( int $postId, string $lang, array $fields, string $status, ?array $basedOn = null ): array {
 		global $wpdb;
 
 		$post = get_post( $postId );
@@ -130,8 +154,8 @@ final class PostTranslations {
 				'post_id'         => $postId,
 				'lang'            => $lang,
 				'status'          => in_array( $status, self::STATUSES, true ) ? $status : 'draft',
-				'source_hash'     => self::sourceHash( $post ),
-				'source_snapshot' => (string) wp_json_encode( self::snapshot( $post ) ),
+				'source_hash'     => null !== $basedOn ? self::hash( (string) ( $basedOn['title'] ?? '' ), (string) ( $basedOn['content'] ?? '' ), (string) ( $basedOn['excerpt'] ?? '' ) ) : self::sourceHash( $post ),
+				'source_snapshot' => (string) wp_json_encode( null !== $basedOn ? array( 'title' => (string) ( $basedOn['title'] ?? '' ), 'content' => (string) ( $basedOn['content'] ?? '' ), 'excerpt' => (string) ( $basedOn['excerpt'] ?? '' ) ) : self::snapshot( $post ) ),
 				'previous_slugs'  => (string) wp_json_encode( $previous ),
 				'updated_at'      => current_time( 'mysql', true ),
 			)
@@ -143,6 +167,7 @@ final class PostTranslations {
 		}
 		unset( self::$cache[ $postId ] );
 		self::$published = array();
+		Coverage::record( $lang, (string) get_permalink( $postId ), 0 ); // judged again when the page is rendered
 		do_action( 'marclie_lingua/post_translation_saved', $postId, $lang );
 
 		return (array) self::get( $postId, $lang );
@@ -224,7 +249,11 @@ final class PostTranslations {
 	}
 
 	public static function sourceHash( \WP_Post $post ): string {
-		return md5( $post->post_title . "\0" . $post->post_content . "\0" . $post->post_excerpt );
+		return self::hash( $post->post_title, $post->post_content, $post->post_excerpt );
+	}
+
+	private static function hash( string $title, string $content, string $excerpt ): string {
+		return md5( $title . "\0" . $content . "\0" . $excerpt );
 	}
 
 	/** @return array{title: string, content: string, excerpt: string} */
@@ -237,8 +266,8 @@ final class PostTranslations {
 	}
 
 	/**
-	 * A slug free in the language: not another post's translated slug, not another post's own slug of the same
-	 * type (both would share the URL). Empty = the source slug is used.
+	 * A slug free in the language: not another post's translated slug (current or former — former ones redirect),
+	 * not the own slug of another public post or page (they could share the URL). Empty = the source slug is used.
 	 */
 	private static function uniqueSlug( \WP_Post $post, string $lang, string $slug ): string {
 		global $wpdb;
@@ -248,8 +277,10 @@ final class PostTranslations {
 		}
 		$candidate = $slug;
 		for ( $n = 2; $n < 100; $n++ ) {
-			$taken = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE lang = %s AND slug = %s AND post_id <> %d', $lang, $candidate, $post->ID ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name.
-				+ (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_name = %s AND post_type = %s AND ID <> %d", $candidate, $post->post_type, $post->ID ) );
+			$types = array_values( get_post_types( array( 'public' => true ) ) );
+			$in    = implode( ',', array_fill( 0, count( $types ), '%s' ) );
+			$taken = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE lang = %s AND post_id <> %d AND ( slug = %s OR previous_slugs LIKE %s )', $lang, $post->ID, $candidate, '%"' . $wpdb->esc_like( $candidate ) . '"%' ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name.
+				+ (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_name = %s AND ID <> %d AND post_status NOT IN ('trash', 'auto-draft') AND post_type IN ($in)", array_merge( array( $candidate, $post->ID ), $types ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- placeholders.
 			if ( 0 === $taken ) {
 				return $candidate;
 			}

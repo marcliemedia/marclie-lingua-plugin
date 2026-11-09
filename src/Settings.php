@@ -56,6 +56,8 @@ final class Settings {
 			$stored = get_option( self::OPTION, null );
 			if ( is_array( $stored ) && ! array_key_exists( 'blog', $stored ) ) {
 				$stored['blog'] = 'browser'; // saved by 0.2.0, which translated blog posts in the browser only
+			} elseif ( is_array( $stored ) && 'stored' === ( $stored['blog'] ?? '' ) ) {
+				$stored['blog'] = 'strings'; // 0.2.1 name of the same mode
 			}
 			self::$cache = self::sanitize( is_array( $stored ) ? $stored : self::defaults() );
 		}
