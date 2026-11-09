@@ -25,8 +25,8 @@ msgstr "Marclie Agency"
 
 #: src/Admin/Page.php:56
 #: src/Admin/Page.php:57
-#: src/Admin/Page.php:185
-#: src/Admin/SettingsPage.php:30
+#: src/Admin/PostMetabox.php:52
+#: src/Admin/SettingsPage.php:35
 msgid "Translations"
 msgstr "Prijevodi"
 
@@ -34,58 +34,59 @@ msgstr "Prijevodi"
 msgid "Strings per page"
 msgstr "Tekstova po stranici"
 
-#: src/Admin/Page.php:92
+#: src/Admin/Page.php:108
 msgid "Collecting the pages…"
 msgstr "Prikupljanje stranica…"
 
 #. translators: 1: pages done, 2: all pages.
-#: src/Admin/Page.php:94
+#: src/Admin/Page.php:110
 #, php-format
 msgid "Scanning page %1$s of %2$s…"
 msgstr "Skeniranje stranice %1$s od %2$s…"
 
 #. translators: %s: number of pages.
-#: src/Admin/Page.php:96
+#: src/Admin/Page.php:112
 #, php-format
 msgid "%s pages could not be loaded; the scan was not recorded. Try again."
 msgstr "Broj stranica koje se nisu učitale: %s. Skeniranje nije zabilježeno, pokušajte ponovno."
 
-#: src/Admin/Page.php:97
+#: src/Admin/Page.php:113
 msgid "The scan stopped because of an error."
 msgstr "Skeniranje je prekinuto zbog pogreške."
 
-#: src/Admin/Page.php:98
+#: src/Admin/Page.php:114
 msgid "You have unsaved translations."
 msgstr "Imate nespremljene prijevode."
 
-#: src/Admin/Page.php:120
+#: src/Admin/Page.php:136
+#: src/Admin/PostEditor.php:164
 msgid "You are not allowed to edit translations."
 msgstr "Nemate dopuštenje za uređivanje prijevoda."
 
-#: src/Admin/Page.php:215
+#: src/Admin/Page.php:227
 msgid "Scan the site"
 msgstr "Skeniraj stranicu"
 
 #. translators: %s: date and time.
-#: src/Admin/Page.php:221
+#: src/Admin/Page.php:233
 #, php-format
 msgid "Last scan: %s. Run a scan after adding or changing content to list the new texts."
 msgstr "Zadnje skeniranje: %s. Nakon dodavanja ili izmjene sadržaja pokrenite skeniranje da se novi tekstovi pojave na popisu."
 
-#: src/Admin/Page.php:222
+#: src/Admin/Page.php:234
 msgid "Run a scan after adding or changing content to list the new texts."
 msgstr "Nakon dodavanja ili izmjene sadržaja pokrenite skeniranje da se novi tekstovi pojave na popisu."
 
-#: src/Admin/Page.php:232
+#: src/Admin/Page.php:259
 msgid "Search texts"
 msgstr "Pretraži tekstove"
 
-#: src/Admin/Page.php:237
+#: src/Admin/Page.php:267
 msgid "Save changes"
 msgstr "Spremi promjene"
 
 #. translators: %s: number of translations.
-#: src/Admin/Page.php:297
+#: src/Admin/Page.php:327
 #, php-format
 msgid "%s translation saved."
 msgid_plural "%s translations saved."
@@ -94,7 +95,7 @@ msgstr[1] "Spremljena su %s prijevoda."
 msgstr[2] "Spremljeno je %s prijevoda."
 
 #. translators: %s: number of strings.
-#: src/Admin/Page.php:302
+#: src/Admin/Page.php:332
 #, php-format
 msgid "%s text deleted."
 msgid_plural "%s texts deleted."
@@ -115,17 +116,17 @@ msgid "All"
 msgstr "Svi"
 
 #: src/Admin/StringsTable.php:63
-#: src/Admin/StringsTable.php:150
+#: src/Admin/StringsTable.php:164
 msgid "Untranslated"
 msgstr "Nije prevedeno"
 
 #: src/Admin/StringsTable.php:64
-#: src/Admin/StringsTable.php:151
+#: src/Admin/StringsTable.php:165
 msgid "Automatic"
 msgstr "Automatski prijevod"
 
 #: src/Admin/StringsTable.php:65
-#: src/Admin/StringsTable.php:152
+#: src/Admin/StringsTable.php:166
 msgid "Edited"
 msgstr "Uređeno"
 
@@ -133,11 +134,7 @@ msgstr "Uređeno"
 msgid "Not found by the last scan"
 msgstr "Nije pronađeno zadnjim skeniranjem"
 
-#: src/Admin/StringsTable.php:101
-msgid "No strings here."
-msgstr "Ovdje nema tekstova."
-
-#: src/Admin/StringsTable.php:123
+#: src/Admin/StringsTable.php:137
 msgid "Page:"
 msgstr "Stranica:"
 
@@ -146,101 +143,102 @@ msgstr "Stranica:"
 msgid "Translates a WordPress site into other languages from editable string pairs: the page is translated on the server, each language has its own URLs (/en/, /de/ …), with a language switcher (shortcode and Bricks element) and an optional Marclie Booking integration."
 msgstr "Prevodi WordPress web-stranicu na druge jezike iz parova tekstova koje možete uređivati: stranica se prevodi na poslužitelju, svaki jezik ima svoje URL-ove (/en/, /de/ …), uz izbornik jezika (kratki kod i Bricks element) i neobaveznu integraciju s Marclie Bookingom."
 
-#: src/Admin/Page.php:191
+#: src/Admin/Page.php:212
 msgid "No translated language is set up yet."
 msgstr "Još nije postavljen nijedan jezik prijevoda."
 
-#: src/Admin/Page.php:193
+#: src/Admin/Page.php:215
 msgid "Add a language in the settings."
 msgstr "Dodajte jezik u postavkama."
 
 #. translators: 1: source language name, 2: translated language name.
-#: src/Admin/Page.php:208
+#: src/Admin/Page.php:246
 #, php-format
 msgid "Each row is one text of the site in %1$s with its %2$s translation; an empty translation shows the %1$s text. Keep the tags such as <strong>…</strong> or <a>…</a> of the text in the translation: they carry the bold text, links and icons."
 msgstr "Svaki redak je jedan tekst stranice na jeziku %1$s s prijevodom na jezik %2$s; prazan prijevod prikazuje tekst na jeziku %1$s. Oznake poput <strong>…</strong> ili <a>…</a> iz teksta zadržite i u prijevodu: one nose podebljani tekst, poveznice i ikone."
 
-#: src/Admin/Page.php:250
-#: src/Admin/SettingsPage.php:111
-#: src/Admin/SettingsPage.php:114
+#: src/Admin/Page.php:281
+#: src/Admin/SettingsPage.php:131
 msgid "Translated languages"
 msgstr "Jezici prijevoda"
 
-#: src/Admin/Page.php:308
+#: src/Admin/Page.php:338
 msgid "Not saved: the translation must use the same tags as the original text, each closed."
 msgstr "Nije spremljeno: prijevod mora imati iste oznake kao izvorni tekst, svaku zatvorenu."
 
-#: src/Admin/SettingsPage.php:30
+#: src/Admin/Page.php:203
+#: src/Admin/SettingsPage.php:35
 msgid "Texts"
 msgstr "Tekstovi"
 
-#: src/Admin/SettingsPage.php:31
-#: src/Admin/SettingsPage.php:90
+#: src/Admin/SettingsPage.php:39
+#: src/Admin/SettingsPage.php:100
 msgid "Translation settings"
 msgstr "Postavke prijevoda"
 
-#: src/Admin/SettingsPage.php:31
+#: src/Admin/SettingsPage.php:39
 msgid "Settings"
 msgstr "Postavke"
 
-#: src/Admin/SettingsPage.php:71
+#: src/Admin/SettingsPage.php:79
 msgid "The source language was not changed: confirm that every stored text and translation may be deleted."
 msgstr "Izvorni jezik nije promijenjen: potvrdite da se svi spremljeni tekstovi i prijevodi smiju izbrisati."
 
-#: src/Admin/SettingsPage.php:76
+#: src/Admin/SettingsPage.php:84
 msgid "Source language changed; every stored text was deleted. Scan the site to collect the texts again."
 msgstr "Izvorni jezik je promijenjen; svi spremljeni tekstovi su izbrisani. Skenirajte stranicu da se tekstovi ponovno prikupe."
 
-#: src/Admin/SettingsPage.php:97
+#: src/Admin/SettingsPage.php:119
 msgid "Source language"
 msgstr "Izvorni jezik"
 
-#: src/Admin/SettingsPage.php:104
+#: src/Admin/SettingsPage.php:125
 msgid "The language the content is written in. It is the default language: its pages keep their URLs without a language prefix."
 msgstr "Jezik na kojem je sadržaj napisan. To je zadani jezik: njegove stranice zadržavaju URL-ove bez jezičnog prefiksa."
 
-#: src/Admin/SettingsPage.php:106
+#: src/Admin/SettingsPage.php:127
 msgid "Changing it deletes every stored text and translation (they belong to the current source language)."
 msgstr "Promjena briše sve spremljene tekstove i prijevode (pripadaju trenutačnom izvornom jeziku)."
 
-#: src/Admin/SettingsPage.php:124
+#: src/Admin/SettingsPage.php:146
 msgid "Position in the language switcher"
 msgstr "Položaj u izborniku jezika"
 
-#: src/Admin/SettingsPage.php:129
+#: src/Admin/SettingsPage.php:132
 msgid "Each language gets its URLs under its prefix. The number sets its position in the language switcher."
 msgstr "Svaki jezik dobiva URL-ove pod svojim prefiksom. Broj određuje njegov položaj u izborniku jezika."
 
-#: src/Admin/SettingsPage.php:133
+#: src/Admin/SettingsPage.php:203
 msgid "Marclie Booking"
 msgstr "Marclie Booking"
 
-#: src/Admin/SettingsPage.php:136
+#: src/Admin/SettingsPage.php:208
 msgid "Marclie Booking integration"
 msgstr "Integracija s Marclie Bookingom"
 
-#: src/Admin/SettingsPage.php:139
+#: src/Admin/SettingsPage.php:211
 msgid "Automatic: on when Marclie Booking is active and supports it"
 msgstr "Automatski: uključeno kada je Marclie Booking aktivan i podržava integraciju"
 
-#: src/Admin/SettingsPage.php:140
+#: src/Admin/SettingsPage.php:212
 msgid "On"
 msgstr "Uključeno"
 
-#: src/Admin/SettingsPage.php:141
+#: src/Admin/SettingsPage.php:213
 msgid "Off: booking widgets are translated like any other text"
 msgstr "Isključeno: widgeti za rezervaciju prevode se kao i ostali tekstovi"
 
-#: src/Admin/SettingsPage.php:152
+#: src/Admin/PostEditor.php:514
+#: src/Admin/SettingsPage.php:182
 msgid "Search engines"
 msgstr "Tražilice"
 
-#: src/Admin/SettingsPage.php:154
+#: src/Admin/SettingsPage.php:187
 msgid "Let search engines index the translated pages (hreflang links, own canonical URL, language sitemaps)"
 msgstr "Dopusti tražilicama indeksiranje prevedenih stranica (hreflang poveznice, vlastiti kanonski URL, mape web-stranice po jeziku)"
 
 #. translators: %s: language name.
-#: src/Admin/StringsTable.php:139
+#: src/Admin/StringsTable.php:153
 #, php-format
 msgid "Translation (%s)"
 msgstr "Prijevod (%s)"
@@ -307,18 +305,18 @@ msgstr "Marclie Booking je pronađen: integracija je isključena."
 msgid "Language"
 msgstr "Jezik"
 
-#: src/Install.php:56
+#: src/Install.php:57
 msgid "Marclie Lingua could not update its database tables; translated pages may be incomplete. The update is retried on every admin page."
 msgstr "Marclie Lingua nije uspio ažurirati svoje tablice u bazi podataka; prevedene stranice mogu biti nepotpune. Ažuriranje se ponovno pokušava na svakoj stranici administracije."
 
 #. translators: %s: percentage of translated texts.
-#: src/Admin/Page.php:260
+#: src/Admin/Page.php:290
 #, php-format
 msgid "%s%% translated"
 msgstr "%s%% prevedeno"
 
 #. translators: 1: number of pages, 2: language name.
-#: src/Admin/Page.php:275
+#: src/Admin/Page.php:305
 #, php-format
 msgid "%1$s %2$s page is hidden from search engines until its texts are translated."
 msgid_plural "%1$s %2$s pages are hidden from search engines until their texts are translated."
@@ -327,7 +325,7 @@ msgstr[1] "%1$s stranice (%2$s) skrivene su od tražilica dok se njihovi tekstov
 msgstr[2] "%1$s stranica (%2$s) skriveno je od tražilica dok se njihovi tekstovi ne prevedu."
 
 #. translators: %s: number of texts.
-#: src/Admin/Page.php:286
+#: src/Admin/Page.php:316
 #, php-format
 msgid "%s untranslated text"
 msgid_plural "%s untranslated texts"
@@ -335,31 +333,563 @@ msgstr[0] "%s neprevedeni tekst"
 msgstr[1] "%s neprevedena teksta"
 msgstr[2] "%s neprevedenih tekstova"
 
-#: src/Admin/Page.php:289
+#: src/Admin/Page.php:319
 msgid "Translate them below (view \"Untranslated\"; for names and codes use the bulk action \"Keep original text\"), then open the page or scan the site to update this list."
 msgstr "Prevedite ih u nastavku (prikaz „Nije prevedeno”; za nazive i kodove upotrijebite skupnu radnju „Zadrži izvorni tekst”), a zatim otvorite stranicu ili skenirajte web-stranicu da se popis ažurira."
 
-#: src/Admin/SettingsPage.php:155
+#: src/Admin/SettingsPage.php:188
 msgid "When off, translated pages are \"noindex, follow\". When on, a translated page is still \"noindex, follow\" while it shows texts that are not translated yet (a page in two languages is a poor search result); it is indexed once every text on it is translated."
 msgstr "Kada je isključeno, prevedene stranice su „noindex, follow”. Kada je uključeno, prevedena stranica ostaje „noindex, follow” dok prikazuje tekstove koji još nisu prevedeni (stranica na dva jezika loš je rezultat pretraživanja); indeksira se kada su svi njezini tekstovi prevedeni."
 
-#: src/Admin/SettingsPage.php:157
+#: src/Admin/SettingsPage.php:191
 msgid "Version for searchers whose language the site does not have (x-default):"
 msgstr "Verzija za korisnike čiji jezik web-stranica nema (x-default):"
 
-#: src/Admin/SettingsPage.php:167
-#: src/Admin/SettingsPage.php:170
+#: src/Admin/SettingsPage.php:157
+#: src/Admin/SettingsPage.php:162
 msgid "Blog posts"
 msgstr "Objave na blogu"
-
-#: src/Admin/SettingsPage.php:171
-msgid "Translate like the other pages (texts stored and edited here; translated posts can be found in search engines)"
-msgstr "Prevodi kao ostale stranice (tekstovi se spremaju i uređuju ovdje; prevedene objave mogu se pronaći u tražilicama)"
-
-#: src/Admin/SettingsPage.php:172
-msgid "Translate in the visitor's browser (parts marked data-mlg-skip; nothing to translate here, but translated posts are not indexed)"
-msgstr "Prevodi u pregledniku posjetitelja (dijelovi označeni data-mlg-skip; ovdje se ništa ne prevodi, ali prevedene objave se ne indeksiraju)"
 
 #: src/Admin/StringsTable.php:54
 msgid "Keep original text"
 msgstr "Zadrži izvorni tekst"
+
+#: src/Admin/Page.php:204
+msgid "The texts of your pages, menus, buttons and forms, one row each."
+msgstr "Tekstovi vaših stranica, izbornika, gumba i obrazaca, svaki u svom retku."
+
+#: src/Admin/Page.php:213
+msgid "Choose the languages you want to translate into. The texts of the site will then appear here."
+msgstr "Odaberite jezike na koje želite prevoditi. Tekstovi web-stranice tada će se pojaviti ovdje."
+
+#: src/Admin/Page.php:266
+#: src/Admin/PostEditor.php:578
+msgid "Unsaved changes"
+msgstr "Nespremljene promjene"
+
+#: src/Admin/PostEditor.php:48
+msgid "Post translations"
+msgstr "Prijevodi objava"
+
+#: src/Admin/PostEditor.php:48
+#: src/Admin/PostsTable.php:309
+msgid "Posts"
+msgstr "Objave"
+
+#: src/Admin/PostEditor.php:50
+#: src/Admin/PostEditor.php:113
+#: src/Admin/PostEditor.php:224
+msgid "Translate post"
+msgstr "Prevedi objavu"
+
+#: src/Admin/PostEditor.php:61
+msgid "Not translated"
+msgstr "Nije prevedeno"
+
+#: src/Admin/PostEditor.php:62
+msgid "Draft"
+msgstr "Skica"
+
+#: src/Admin/PostEditor.php:63
+msgid "Published"
+msgstr "Objavljeno"
+
+#: src/Admin/PostEditor.php:64
+msgid "Needs review"
+msgstr "Potreban pregled"
+
+#: src/Admin/PostEditor.php:75
+#: src/Admin/PostMetabox.php:72
+msgid "Translate"
+msgstr "Prevedi"
+
+#: src/Admin/PostEditor.php:87
+msgid "edit translation"
+msgstr "uredi prijevod"
+
+#: src/Admin/PostEditor.php:141
+msgid "You have unsaved changes."
+msgstr "Imate nespremljene promjene."
+
+#: src/Admin/PostEditor.php:142
+msgid "Delete this translation? This cannot be undone."
+msgstr "Izbrisati ovaj prijevod? Ovo se ne može poništiti."
+
+#: src/Admin/PostEditor.php:143
+msgid "Your unsaved changes will be lost. Mark as reviewed anyway?"
+msgstr "Vaše nespremljene promjene bit će izgubljene. Svejedno označiti kao pregledano?"
+
+#. translators: %s: number of fields.
+#: src/Admin/PostEditor.php:145
+#, php-format
+msgid "Copied the original into %s empty fields."
+msgstr "Izvornik je kopiran u prazna polja (%s)."
+
+#: src/Admin/PostEditor.php:146
+msgid "Copied the original into 1 empty field."
+msgstr "Izvornik je kopiran u 1 prazno polje."
+
+#: src/Admin/PostEditor.php:147
+msgid "Nothing copied: the fields already have text."
+msgstr "Ništa nije kopirano: polja već sadrže tekst."
+
+#. translators: 1: characters typed, 2: recommended maximum.
+#: src/Admin/PostEditor.php:149
+#, php-format
+msgid "%1$s / %2$s"
+msgstr "%1$s / %2$s"
+
+#: src/Admin/PostEditor.php:150
+msgid "may be cut off"
+msgstr "može biti odrezano"
+
+#: src/Admin/PostEditor.php:160
+msgid "This post cannot be translated here."
+msgstr "Ova se objava ne može prevesti ovdje."
+
+#: src/Admin/PostEditor.php:192
+msgid "Not published: add the translated title and content first."
+msgstr "Nije objavljeno: najprije dodajte prevedeni naslov i sadržaj."
+
+#: src/Admin/PostEditor.php:199
+msgid "The translation could not be saved. Reload the page and try again."
+msgstr "Prijevod nije moguće spremiti. Ponovno učitajte stranicu i pokušajte ponovno."
+
+#: src/Admin/PostEditor.php:227
+msgid "This post cannot be translated here"
+msgstr "Ova se objava ne može prevesti ovdje"
+
+#: src/Admin/PostEditor.php:229
+msgid "It may have been deleted, or it is not a blog post."
+msgstr "Možda je izbrisana ili nije objava bloga."
+
+#: src/Admin/PostEditor.php:230
+msgid "Whole-post translation is turned off in the settings."
+msgstr "Prevođenje cijelih objava isključeno je u postavkama."
+
+#: src/Admin/PostEditor.php:232
+msgid "Back to posts"
+msgstr "Natrag na objave"
+
+#: src/Admin/PostEditor.php:246
+#: src/Admin/PostsTable.php:256
+msgid "(no title)"
+msgstr "(bez naslova)"
+
+#: src/Admin/PostEditor.php:248
+msgid "All posts"
+msgstr "Sve objave"
+
+#. translators: 1: source language name, 2: translated language name.
+#: src/Admin/PostEditor.php:255
+#, php-format
+msgid "Translating from %1$s to %2$s"
+msgstr "Prevođenje s jezika %1$s na jezik %2$s"
+
+#: src/Admin/PostEditor.php:270
+msgid "Save"
+msgstr "Spremi"
+
+#: src/Admin/PostEditor.php:287
+msgid "Languages of this post"
+msgstr "Jezici ove objave"
+
+#: src/Admin/PostEditor.php:310
+msgid "Draft saved."
+msgstr "Skica je spremljena."
+
+#: src/Admin/PostEditor.php:311
+msgid "Translation published."
+msgstr "Prijevod je objavljen."
+
+#: src/Admin/PostEditor.php:312
+msgid "Translation updated."
+msgstr "Prijevod je ažuriran."
+
+#: src/Admin/PostEditor.php:313
+msgid "Translation unpublished. Visitors see the original post on this page again."
+msgstr "Objava prijevoda je poništena. Posjetitelji na ovoj stranici ponovno vide izvornu objavu."
+
+#: src/Admin/PostEditor.php:314
+msgid "Marked as reviewed."
+msgstr "Označeno kao pregledano."
+
+#: src/Admin/PostEditor.php:319
+msgid "That URL slug was already taken, so a number was added to it."
+msgstr "Taj je slug (dio URL-a) već zauzet pa mu je dodan broj."
+
+#: src/Admin/PostEditor.php:333
+#: src/Admin/PostEditor.php:425
+#: src/Admin/PostEditor.php:466
+msgid "Title"
+msgstr "Naslov"
+
+#: src/Admin/PostEditor.php:334
+#: src/Admin/PostEditor.php:434
+#: src/Admin/PostEditor.php:485
+msgid "Excerpt"
+msgstr "Sažetak"
+
+#: src/Admin/PostEditor.php:335
+#: src/Admin/PostEditor.php:439
+#: src/Admin/PostEditor.php:491
+msgid "Content"
+msgstr "Sadržaj"
+
+#: src/Admin/PostEditor.php:349
+msgid "The original post changed"
+msgstr "Izvorna objava je promijenjena"
+
+#: src/Admin/PostEditor.php:354
+msgid "This translation is still online. Check what changed and update the translation, or mark it as reviewed if nothing needs to change."
+msgstr "Ovaj je prijevod i dalje dostupan na mreži. Provjerite što se promijenilo i ažurirajte prijevod ili ga označite kao pregledan ako ništa ne treba mijenjati."
+
+#: src/Admin/PostEditor.php:355
+msgid "The original changed since this draft was saved. Check what changed before you publish."
+msgstr "Izvornik se promijenio otkad je ova skica spremljena. Provjerite što se promijenilo prije objavljivanja."
+
+#. translators: %s: list of changed fields, e.g. "Title, Content".
+#: src/Admin/PostEditor.php:364
+#, php-format
+msgid "Show changes: %s"
+msgstr "Prikaži promjene: %s"
+
+#: src/Admin/PostEditor.php:375
+msgid "Mark as reviewed"
+msgstr "Označi kao pregledano"
+
+#: src/Admin/PostEditor.php:401
+msgid "Unchanged lines skipped"
+msgstr "Nepromijenjeni retci su preskočeni"
+
+#: src/Admin/PostEditor.php:409
+msgid "Before"
+msgstr "Prije"
+
+#: src/Admin/PostEditor.php:409
+msgid "Now"
+msgstr "Sada"
+
+#: src/Admin/PostEditor.php:418
+msgid "Original"
+msgstr "Izvornik"
+
+#: src/Admin/PostEditor.php:420
+#: src/Admin/PostsTable.php:262
+msgid "Edit original"
+msgstr "Uredi izvornik"
+
+#: src/Admin/PostEditor.php:423
+msgid "Original post"
+msgstr "Izvorna objava"
+
+#: src/Admin/PostEditor.php:429
+#: src/Admin/PostEditor.php:471
+msgid "URL slug"
+msgstr "Slug (dio URL-a)"
+
+#: src/Admin/PostEditor.php:459
+msgid "Translation"
+msgstr "Prijevod"
+
+#: src/Admin/PostEditor.php:461
+msgid "Start from original"
+msgstr "Započni od izvornika"
+
+#: src/Admin/PostEditor.php:462
+msgid "Copies the original title, excerpt and content into the empty fields."
+msgstr "Kopira izvorni naslov, sažetak i sadržaj u prazna polja."
+
+#: src/Admin/PostEditor.php:474
+msgid "Use title"
+msgstr "Koristi naslov"
+
+#: src/Admin/PostEditor.php:477
+msgid "Address:"
+msgstr "Adresa:"
+
+#: src/Admin/PostEditor.php:479
+msgid "Translated URLs need pretty permalinks (Settings › Permalinks)."
+msgstr "Prevedeni URL-ovi zahtijevaju lijepe stalne veze (Postavke › Stalne veze)."
+
+#: src/Admin/PostEditor.php:481
+msgid "Leave empty to keep the original slug."
+msgstr "Ostavite prazno da biste zadržali izvorni slug."
+
+#: src/Admin/PostEditor.php:487
+msgid "Short summary shown in post lists."
+msgstr "Kratak sažetak prikazan u popisima objava."
+
+#: src/Admin/PostEditor.php:493
+msgid "This post is made of blocks: translate the text and keep the <!-- wp:… --> lines as they are."
+msgstr "Ova se objava sastoji od blokova: prevedite tekst, a retke <!-- wp:… --> ostavite nepromijenjenima."
+
+#: src/Admin/PostEditor.php:517
+msgid "SEO title"
+msgstr "SEO naslov"
+
+#: src/Admin/PostEditor.php:521
+msgid "Shown in search results and browser tabs. About 60 characters. Leave empty to use the title."
+msgstr "Prikazuje se u rezultatima pretraživanja i karticama preglednika. Oko 60 znakova. Ostavite prazno za korištenje naslova."
+
+#: src/Admin/PostEditor.php:525
+msgid "SEO description"
+msgstr "SEO opis"
+
+#: src/Admin/PostEditor.php:529
+msgid "The text under the title in search results. About 155 characters. Leave empty to use the excerpt."
+msgstr "Tekst ispod naslova u rezultatima pretraživanja. Oko 155 znakova. Ostavite prazno za korištenje sažetka."
+
+#. translators: %s: time since, e.g. "5 minutes".
+#: src/Admin/PostEditor.php:572
+#, php-format
+msgid "Saved %s ago"
+msgstr "Spremljeno prije %s"
+
+#: src/Admin/PostEditor.php:574
+msgid "Not saved yet"
+msgstr "Još nije spremljeno"
+
+#: src/Admin/PostEditor.php:582
+msgid "Delete translation"
+msgstr "Izbriši prijevod"
+
+#: src/Admin/PostEditor.php:585
+msgid "View"
+msgstr "Pogledaj"
+
+#: src/Admin/PostEditor.php:585
+#: src/Admin/PostsTable.php:265
+msgid "(opens in a new tab)"
+msgstr "(otvara se u novoj kartici)"
+
+#: src/Admin/PostEditor.php:588
+msgid "Unpublish"
+msgstr "Poništi objavu"
+
+#: src/Admin/PostEditor.php:589
+msgid "Update"
+msgstr "Ažuriraj"
+
+#: src/Admin/PostEditor.php:591
+msgid "Save draft"
+msgstr "Spremi skicu"
+
+#: src/Admin/PostEditor.php:592
+msgid "Publish"
+msgstr "Objavi"
+
+#: src/Admin/PostMetabox.php:62
+msgid "Save the post first, then translate it here."
+msgstr "Najprije spremite objavu, a zatim je prevedite ovdje."
+
+#: src/Admin/PostMetabox.php:72
+msgid "Edit"
+msgstr "Uredi"
+
+#: src/Admin/PostMetabox.php:76
+msgid "All post translations"
+msgstr "Svi prijevodi objava"
+
+#. translators: 1: number of translations, 2: language names.
+#: src/Admin/PostMetabox.php:92
+#, php-format
+msgid "Post updated: %1$s translation may need review (%2$s)."
+msgid_plural "Post updated: %1$s translations may need review (%2$s)."
+msgstr[0] "Objava je ažurirana: %1$s prijevod možda treba pregled (%2$s)."
+msgstr[1] "Objava je ažurirana: %1$s prijevoda možda trebaju pregled (%2$s)."
+msgstr[2] "Objava je ažurirana: %1$s prijevoda možda treba pregled (%2$s)."
+
+#: src/Admin/PostMetabox.php:112
+#: src/Admin/PostMetabox.php:152
+msgid "Review translation"
+msgstr "Pregledaj prijevod"
+
+#: src/Admin/PostsTable.php:60
+msgid "Posts per page"
+msgstr "Objava po stranici"
+
+#: src/Admin/PostsTable.php:142
+msgid "Post"
+msgstr "Objava"
+
+#: src/Admin/PostsTable.php:146
+msgid "Date"
+msgstr "Datum"
+
+#: src/Admin/PostsTable.php:223
+msgid "Filter by language"
+msgstr "Filtriraj po jeziku"
+
+#: src/Admin/PostsTable.php:225
+msgid "All languages"
+msgstr "Svi jezici"
+
+#: src/Admin/PostsTable.php:230
+msgid "Filter by state"
+msgstr "Filtriraj po stanju"
+
+#: src/Admin/PostsTable.php:232
+msgid "Any state"
+msgstr "Bilo koje stanje"
+
+#: src/Admin/PostsTable.php:237
+msgid "Filter"
+msgstr "Filtriraj"
+
+#: src/Admin/PostsTable.php:239
+msgid "Clear filters"
+msgstr "Očisti filtre"
+
+#: src/Admin/PostsTable.php:247
+msgid "No posts match these filters."
+msgstr "Nijedna objava ne odgovara ovim filtrima."
+
+#: src/Admin/PostsTable.php:250
+msgid "No posts yet. Write a post, then translate it here."
+msgstr "Još nema objava. Napišite objavu, a zatim je prevedite ovdje."
+
+#: src/Admin/PostsTable.php:265
+msgid "View original"
+msgstr "Pogledaj izvornik"
+
+#: src/Admin/PostsTable.php:310
+msgid "Translate each blog post as a whole: title, content, excerpt, URL and SEO."
+msgstr "Prevedite svaku objavu bloga u cijelosti: naslov, sadržaj, sažetak, URL i SEO."
+
+#: src/Admin/PostsTable.php:315
+msgid "Whole-post translation is off"
+msgstr "Prevođenje cijelih objava je isključeno"
+
+#: src/Admin/PostsTable.php:316
+msgid "Blog posts are translated another way right now. To translate them here, open the settings and choose “Translate whole posts” under Blog posts."
+msgstr "Objave bloga trenutačno se prevode na drugi način. Da biste ih prevodili ovdje, otvorite postavke i pod Objave bloga odaberite „Prevedi cijele objave“."
+
+#: src/Admin/PostsTable.php:318
+msgid "Open settings"
+msgstr "Otvori postavke"
+
+#: src/Admin/PostsTable.php:326
+msgid "No translated language yet"
+msgstr "Još nema jezika prijevoda"
+
+#: src/Admin/PostsTable.php:327
+msgid "Add the languages you want to translate into, then come back to translate your posts."
+msgstr "Dodajte jezike na koje želite prevoditi, a zatim se vratite kako biste preveli svoje objave."
+
+#: src/Admin/PostsTable.php:329
+msgid "Add a language"
+msgstr "Dodaj jezik"
+
+#: src/Admin/PostsTable.php:341
+msgid "Search posts"
+msgstr "Pretraži objave"
+
+#. translators: 1: language name, 2: post title.
+#: src/Admin/PostsTable.php:362
+#, php-format
+msgid "%1$s translation of “%2$s” deleted."
+msgstr "Prijevod (%1$s) objave „%2$s“ je izbrisan."
+
+#: src/Admin/PostsTable.php:378
+msgid "Progress by language"
+msgstr "Napredak po jeziku"
+
+#. translators: %s: number of posts.
+#: src/Admin/PostsTable.php:391
+#, php-format
+msgid "%s needs review"
+msgid_plural "%s need review"
+msgstr[0] "%s za pregled"
+msgstr[1] "%s za pregled"
+msgstr[2] "%s za pregled"
+
+#. translators: %s: number of posts.
+#: src/Admin/PostsTable.php:395
+#, php-format
+msgid "%s draft"
+msgid_plural "%s drafts"
+msgstr[0] "%s skica"
+msgstr[1] "%s skice"
+msgstr[2] "%s skica"
+
+#. translators: %s: number of posts.
+#: src/Admin/PostsTable.php:399
+#, php-format
+msgid "%s to translate"
+msgid_plural "%s to translate"
+msgstr[0] "%s za prevođenje"
+msgstr[1] "%s za prevođenje"
+msgstr[2] "%s za prevođenje"
+
+#: src/Admin/PostsTable.php:402
+msgid "All done"
+msgstr "Sve je gotovo"
+
+#. translators: 1: translated posts, 2: published posts.
+#: src/Admin/PostsTable.php:408
+#, php-format
+msgid "%1$s of %2$s published"
+msgstr "Objavljeno: %1$s od %2$s"
+
+#: src/Admin/SettingsPage.php:114
+msgid "Languages"
+msgstr "Jezici"
+
+#: src/Admin/SettingsPage.php:115
+msgid "The language your content is written in, and the languages visitors can switch to."
+msgstr "Jezik na kojem je napisan vaš sadržaj i jezici na koje se posjetitelji mogu prebaciti."
+
+#: src/Admin/SettingsPage.php:158
+msgid "How blog posts get their translations. Pages, menus and buttons are always translated under Texts."
+msgstr "Način na koji objave bloga dobivaju prijevode. Stranice, izbornici i gumbi uvijek se prevode pod Tekstovi."
+
+#: src/Admin/SettingsPage.php:165
+msgid "Translate whole posts"
+msgstr "Prevedi cijele objave"
+
+#: src/Admin/SettingsPage.php:165
+msgid "Translations › Posts: title, content, excerpt, URL and SEO per language; translated posts can be found in search engines."
+msgstr "Prijevodi › Objave: naslov, sadržaj, sažetak, URL i SEO po jeziku; prevedene objave mogu se pronaći u tražilicama."
+
+#: src/Admin/SettingsPage.php:166
+msgid "Translate text by text"
+msgstr "Prevedi tekst po tekst"
+
+#: src/Admin/SettingsPage.php:166
+msgid "Like the other pages, under Translations › Texts."
+msgstr "Kao i ostale stranice, pod Prijevodi › Tekstovi."
+
+#: src/Admin/SettingsPage.php:167
+msgid "Translate in the visitor’s browser"
+msgstr "Prevedi u pregledniku posjetitelja"
+
+#: src/Admin/SettingsPage.php:167
+msgid "Parts marked data-mlg-skip; nothing to translate here, but translated posts are not indexed."
+msgstr "Dijelovi označeni s data-mlg-skip; ovdje nema ničega za prevođenje, ali prevedene objave nisu indeksirane."
+
+#: src/Admin/SettingsPage.php:183
+msgid "Whether Google and others may list the translated pages."
+msgstr "Smiju li Google i drugi prikazivati prevedene stranice."
+
+#. translators: %s: search terms.
+#: src/Admin/StringsTable.php:103
+#, php-format
+msgid "No texts match “%s”."
+msgstr "Nijedan tekst ne odgovara upitu „%s“."
+
+#: src/Admin/StringsTable.php:108
+msgid "Everything is translated."
+msgstr "Sve je prevedeno."
+
+#: src/Admin/StringsTable.php:110
+msgid "The last scan found every text."
+msgstr "Posljednje skeniranje pronašlo je sve tekstove."
+
+#: src/Admin/StringsTable.php:112
+msgid "No texts yet. Scan the site to collect them."
+msgstr "Još nema tekstova. Skenirajte web-stranicu da biste ih prikupili."
+
+#: src/Admin/StringsTable.php:114
+msgid "No texts here."
+msgstr "Ovdje nema tekstova."

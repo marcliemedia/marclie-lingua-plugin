@@ -35,8 +35,8 @@ description (Translations › Posts, or the "Translations" box on the post's edi
   description on that language's pages; the theme around it (menus, buttons…) still comes from Translations › Texts;
 * a translated slug moves the URL (`/en/vodic/novalja-beaches/`); the source slug and former slugs redirect (301);
   links, the switcher, hreflang, canonical and sitemaps use it;
-* when the original is edited afterwards the translation stays online and is marked "Original changed" with what
-  changed; "Mark as reviewed" clears it;
+* when the original is edited afterwards the translation stays online and is marked "Needs review" with what changed;
+  "Mark as reviewed" clears it;
 * lists of posts (blog page, categories, query loops) in a language show only the posts translated into it; a post
   opened in a language it is not translated into shows the original and is `noindex`;
 * the site search in a language searches the translations.

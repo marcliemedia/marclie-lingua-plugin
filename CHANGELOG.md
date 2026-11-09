@@ -5,7 +5,7 @@
 ### Added
 - Whole-post translations for blog posts (setting "Blog posts" → "Translate whole posts", default on new sites):
   title, content, excerpt, slug, SEO title / description per language (table `mlg_post_translations`), drafts and
-  publishing, "Original changed" flag with a diff and "Mark as reviewed".
+  publishing, "Needs review" flag with a diff of the original and "Mark as reviewed".
 - Admin: Translations › Posts (status per post and language) and a side-by-side translation editor; a "Translations"
   box on the post edit screen. Refreshed Texts and Settings screens.
 - Translated post slugs (`mlg_paths`): incoming URLs, links, switcher, hreflang, canonical and sitemaps; the source
