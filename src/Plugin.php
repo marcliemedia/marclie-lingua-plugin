@@ -14,6 +14,7 @@ final class Plugin {
 		Install::hooks();
 		PostTranslations::hooks();
 		PostRenderer::hooks();
+		Paths::hooks();
 		add_action(
 			'init',
 			static function (): void {
