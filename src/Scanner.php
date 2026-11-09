@@ -73,6 +73,7 @@ final class Scanner {
 		if ( '' !== $started ) {
 			update_option( self::LAST_OPTION, $started, false );
 			delete_option( self::RUNNING_OPTION );
+			Coverage::retain( self::jobs() ); // pages the scan no longer finds are no longer listed as hidden
 		}
 	}
 
@@ -83,8 +84,9 @@ final class Scanner {
 	/** @return list<string> Every scanned page in every translated language. */
 	public static function jobs(): array {
 		$jobs = array();
+		$urls = self::urls();
 		foreach ( Settings::targetCodes() as $code ) {
-			foreach ( self::urls() as $url ) {
+			foreach ( $urls as $url ) {
 				$jobs[] = Router::url( $url, $code );
 			}
 		}

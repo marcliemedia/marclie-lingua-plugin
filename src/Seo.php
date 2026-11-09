@@ -98,7 +98,7 @@ final class Seo {
 		if ( null === $url ) {
 			return;
 		}
-		$path    = Frontend::path();
+		$path    = Frontend::requestUri();
 		$current = Language::current();
 		$listed  = array();
 		foreach ( Settings::languages() as $lang ) {

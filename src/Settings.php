@@ -52,7 +52,10 @@ final class Settings {
 	/** @return array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string} */
 	public static function get(): array {
 		if ( null === self::$cache ) {
-			$stored      = get_option( self::OPTION, null );
+			$stored = get_option( self::OPTION, null );
+			if ( is_array( $stored ) && ! array_key_exists( 'blog', $stored ) ) {
+				$stored['blog'] = 'browser'; // saved by 0.2.0, which translated blog posts in the browser only
+			}
 			self::$cache = self::sanitize( is_array( $stored ) ? $stored : self::defaults() );
 		}
 

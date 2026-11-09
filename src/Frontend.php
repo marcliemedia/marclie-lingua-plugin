@@ -52,7 +52,10 @@ final class Frontend {
 			$browser       = Settings::browserBlog();
 			self::$post    = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
 			self::$archive = $browser && ( is_home() || is_archive() );
-			self::$track   = ! is_404() && ! is_search();
+			// the state of a page is what an anonymous visitor (and a search engine) gets at its own URL
+			self::$track   = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
+				&& 'GET' === ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
+				&& ( empty( $_GET ) || '' === (string) get_option( 'permalink_structure' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check.
 			ob_start( array( self::class, 'buffer' ) );
 		}
 	}
@@ -85,7 +88,7 @@ final class Frontend {
 	 */
 	private static function finish( \Dom\HTMLDocument $doc, int $missing ): void {
 		if ( self::$track ) {
-			Coverage::record( Language::current(), self::path(), $missing );
+			Coverage::record( Language::current(), self::requestUri(), $missing );
 		}
 		if ( 0 === $missing || self::$post ) {
 			return; // complete, or a browser-translated blog post (noindex already)
@@ -99,7 +102,17 @@ final class Frontend {
 			$robots->setAttribute( 'name', 'robots' );
 			$doc->head->append( $robots );
 		}
-		$robots?->setAttribute( 'content', 'noindex, follow' );
+		if ( null === $robots ) {
+			return;
+		}
+		// keep the other directives (nofollow, max-image-preview …); only the indexing changes
+		$directives = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $robots->getAttribute( 'content' ) ) ) ) );
+		$directives = array_values( array_diff( $directives, array( 'index', 'all', 'noindex' ) ) );
+		array_unshift( $directives, 'noindex' );
+		if ( ! array_intersect( $directives, array( 'follow', 'nofollow', 'none' ) ) ) {
+			$directives[] = 'follow';
+		}
+		$robots->setAttribute( 'content', implode( ', ', $directives ) );
 	}
 
 	/** An item of Bricks' Posts element whose first link is a blog post. */
@@ -169,12 +182,16 @@ final class Frontend {
 		return $texts;
 	}
 
-	/** Source-language path of this request (the page where a new string is found; Coverage key). */
-	public static function path(): string {
-		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only the path is kept.
-		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	/** Source-language path of this request (the page where a new string is found). */
+	private static function path(): string {
+		$path = (string) wp_parse_url( self::requestUri(), PHP_URL_PATH );
 
 		return '' === $path ? '/' : sanitize_text_field( rawurldecode( $path ) );
+	}
+
+	/** This request's URI in the source language (the language prefix is removed by Router); Coverage key source. */
+	public static function requestUri(): string {
+		return isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- parsed as a URL by the callers.
 	}
 
 	private static function isHtmlResponse(): bool {
