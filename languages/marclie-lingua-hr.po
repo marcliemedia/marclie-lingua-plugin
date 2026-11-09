@@ -1,0 +1,116 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Marclie Lingua 0.1.0\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Domain: marclie-lingua\n"
+
+msgid "Marclie Lingua"
+msgstr "Marclie Lingua"
+
+msgid "English version of Kristal Paris Novalja from stored Croatian → English string pairs: when a visitor picks English, the Croatian page is translated on the server from the saved translations. Every pair is editable in admin › Prijevodi."
+msgstr "Engleska verzija stranice Kristal Paris Novalja iz spremljenih parova hrvatski → engleski: kad posjetitelj odabere English, poslužitelj prevodi hrvatsku stranicu spremljenim prijevodima. Svaki par uređuje se u administraciji › Prijevodi."
+
+msgid "Marclie Agency"
+msgstr "Marclie Agency"
+
+msgid "Translations"
+msgstr "Prijevodi"
+
+msgid "Strings per page"
+msgstr "Tekstova po stranici"
+
+msgid "Collecting the pages…"
+msgstr "Prikupljanje stranica…"
+
+#, php-format
+msgid "Scanning page %1$s of %2$s…"
+msgstr "Skeniranje stranice %1$s od %2$s…"
+
+#, php-format
+msgid "%s pages could not be loaded; the scan was not recorded. Try again."
+msgstr "Broj stranica koje se nisu učitale: %s. Skeniranje nije zabilježeno, pokušajte ponovno."
+
+msgid "The scan stopped because of an error."
+msgstr "Skeniranje je prekinuto zbog pogreške."
+
+msgid "You have unsaved translations."
+msgstr "Imate nespremljene prijevode."
+
+msgid "You are not allowed to edit translations."
+msgstr "Nemate dopuštenje za uređivanje prijevoda."
+
+msgid "The English version of the site is the Croatian page with these translations. Each row is one text from the site; an empty translation shows the Croatian text. Keep the tags such as <strong>…</strong> or <a>…</a> from the Croatian text in the translation: they carry the bold text, links and icons."
+msgstr "Engleska verzija stranice je hrvatska stranica s ovim prijevodima. Svaki redak je jedan tekst sa stranice; bez prijevoda prikazuje se hrvatski tekst. Oznake poput <strong>…</strong> ili <a>…</a> iz hrvatskog teksta zadržite i u prijevodu: one nose podebljani tekst, poveznice i ikone."
+
+msgid "Scan the site"
+msgstr "Skeniraj stranicu"
+
+#, php-format
+msgid "Last scan: %s. Run a scan after adding or changing content to list the new texts."
+msgstr "Zadnje skeniranje: %s. Nakon dodavanja ili izmjene sadržaja pokrenite skeniranje da se novi tekstovi pojave na popisu."
+
+msgid "Run a scan after adding or changing content to list the new texts."
+msgstr "Nakon dodavanja ili izmjene sadržaja pokrenite skeniranje da se novi tekstovi pojave na popisu."
+
+msgid "Search texts"
+msgstr "Pretraži tekstove"
+
+msgid "Save changes"
+msgstr "Spremi promjene"
+
+#, php-format
+msgid "%s translation saved."
+msgid_plural "%s translations saved."
+msgstr[0] "Spremljen je %s prijevod."
+msgstr[1] "Spremljena su %s prijevoda."
+msgstr[2] "Spremljeno je %s prijevoda."
+
+#, php-format
+msgid "%s text deleted."
+msgid_plural "%s texts deleted."
+msgstr[0] "Obrisan je %s tekst."
+msgstr[1] "Obrisana su %s teksta."
+msgstr[2] "Obrisano je %s tekstova."
+
+msgid "Not saved: the translation must use the same tags as the Croatian text, each closed."
+msgstr "Nije spremljeno: prijevod mora imati iste oznake kao hrvatski tekst i svaku zatvoriti."
+
+msgid "Croatian"
+msgstr "Hrvatski"
+
+msgid "English"
+msgstr "Engleski"
+
+msgid "Status"
+msgstr "Stanje"
+
+msgid "Delete"
+msgstr "Obriši"
+
+msgid "All"
+msgstr "Svi"
+
+msgid "Untranslated"
+msgstr "Nije prevedeno"
+
+msgid "Automatic"
+msgstr "Automatski prijevod"
+
+msgid "Edited"
+msgstr "Uređeno"
+
+msgid "Not found by the last scan"
+msgstr "Nije pronađeno zadnjim skeniranjem"
+
+msgid "No strings here."
+msgstr "Ovdje nema tekstova."
+
+msgid "Page:"
+msgstr "Stranica:"
+
+msgid "English translation"
+msgstr "Engleski prijevod"

@@ -1,0 +1,16 @@
+/* Marclie Lingua admin › Translations */
+.mlg-intro { max-width: 860px; }
+.mlg-scan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 4px; }
+.mlg-scan__status { color: #50575e; }
+.mlg .column-source { width: 42%; }
+.mlg .column-status { width: 120px; }
+.mlg-source { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
+.mlg-meta { margin-top: 4px; color: #646970; font-size: 12px; overflow-wrap: anywhere; }
+.mlg-translation { min-height: 34px; resize: vertical; font-size: 13px; line-height: 1.5; }
+.mlg-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; line-height: 1.6; background: #f0f0f1; color: #3c434a; }
+.mlg-status--new { background: #fcf0f1; color: #8a2424; }
+.mlg-status--auto { background: #fcf9e8; color: #6e5800; }
+.mlg-status--edited { background: #edfaef; color: #00692b; }
+.mlg-invalid { margin: 0 0 8px 18px; list-style: disc; }
+.mlg-invalid li { margin-bottom: 6px; }
+.mlg-search .search-box { margin: 0 0 8px; }
