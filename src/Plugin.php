@@ -31,6 +31,8 @@ final class Plugin {
 		if ( is_admin() ) {
 			Admin\Page::hooks();
 			Admin\SettingsPage::hooks();
+			Admin\PostEditor::hooks();
+			Admin\PostMetabox::hooks();
 		}
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'marclie-lingua', Cli::class );

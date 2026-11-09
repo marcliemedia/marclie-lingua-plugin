@@ -4,7 +4,7 @@ Tags: translation, multilingual, languages, hreflang, bricks
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.4
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: Proprietary
 
 Translates a WordPress site into other languages from editable string pairs, with language URLs, a language
@@ -21,8 +21,32 @@ the rendered page on the server, text by text, from translations stored in the d
 * texts are collected while pages are viewed in a translated language and by "Scan the site";
 * translations are edited in Translations (one tab per language) or imported / exported with WP-CLI;
 * a text without a translation shows in the source language;
-* blog posts are translated like the other pages (setting "Blog posts"), or — free and quick, but not indexed in the
-  translated languages — in the visitor's browser (parts marked `data-mlg-skip`, Chrome / Edge Translator API).
+* blog posts (setting "Blog posts"): translated as whole posts (default — see "Translating blog posts"), text by text
+  like the other pages, or — free and quick, but not indexed in the translated languages — in the visitor's browser
+  (parts marked `data-mlg-skip`, Chrome / Edge Translator API).
+
+== Translating blog posts ==
+
+With "Translate whole posts" each post has, per language, its own title, URL slug, excerpt, content and SEO title /
+description (Translations › Posts, or the "Translations" box on the post's edit screen):
+
+* the editor shows the original next to the translation; "Start from original" copies it in;
+* a draft is not shown; a published translation replaces the post's title, content, excerpt and SEO title /
+  description on that language's pages; the theme around it (menus, buttons…) still comes from Translations › Texts;
+* a translated slug moves the URL (`/en/vodic/novalja-beaches/`); the source slug and former slugs redirect (301);
+  links, the switcher, hreflang, canonical and sitemaps use it;
+* when the original is edited afterwards the translation stays online and is marked "Original changed" with what
+  changed; "Mark as reviewed" clears it;
+* lists of posts (blog page, categories, query loops) in a language show only the posts translated into it; a post
+  opened in a language it is not translated into shows the original and is `noindex`;
+* the site search in a language searches the translations.
+
+Translating with AI (or a translator) outside WordPress:
+
+    wp marclie-lingua post export --lang=de --untranslated --file=de.json
+    # fill "translation" (title, slug, excerpt, content as HTML with the same tags, seo_title, seo_description)
+    wp marclie-lingua post import de.json            # drafts; add --publish to publish
+    wp marclie-lingua post export --lang=de --outdated --file=check.json   # posts edited since translated
 
 == Installation ==
 
@@ -103,6 +127,10 @@ Markup: `data-mlg-skip` (blog part, browser translation), `data-mlg-no-rewrite` 
 for scripts that compare paths.
 
 == Upgrade Notice ==
+
+= 0.3.0 =
+Blog posts can be translated as whole posts (new default for new sites; existing sites keep their setting: choose
+"Translate whole posts" in Translations › Settings). Database 2 → 3 adds the table `mlg_post_translations`.
 
 = 0.2.1 =
 Better search results: language-only hreflang codes, an x-default language setting, incomplete translated pages kept

@@ -1,5 +1,5 @@
 /* Marclie Lingua admin: site scan (one page per request, progress in the status line) and an unsaved-changes
-   warning for the translation form. */
+   warning for the translation form (note in the sticky save bar, prompt when leaving the page). */
 (function () {
   "use strict";
 
@@ -18,8 +18,9 @@
   const btn = document.querySelector("[data-mlg-scan]");
   const status = document.querySelector("[data-mlg-scan-status]");
   if (btn && status) {
+    const busy = on => { btn.disabled = on; btn.classList.toggle("is-busy", on); };
     btn.addEventListener("click", async () => {
-      btn.disabled = true;
+      busy(true);
       status.textContent = t.starting;
       try {
         const { urls } = await post("mlg_scan_start");
@@ -34,13 +35,13 @@
         await post("mlg_scan_finish", { failed: failed.length ? "1" : "" });
         if (failed.length) {
           status.textContent = fill(t.failed, String(failed.length)) + " " + failed.join(", ");
-          btn.disabled = false;
+          busy(false);
           return;
         }
         window.location.reload();
       } catch (e) {
         status.textContent = t.error;
-        btn.disabled = false;
+        busy(false);
       }
     });
   }
@@ -48,7 +49,12 @@
   const form = document.getElementById("mlg-form");
   if (form) {
     let dirty = false;
-    form.addEventListener("input", e => { if (e.target.matches(".mlg-translation")) dirty = true; });
+    const note = form.querySelector("[data-mlg-dirty]");
+    form.addEventListener("input", e => {
+      if (!e.target.matches(".mlg-translation")) return;
+      dirty = true;
+      if (note) note.hidden = false;
+    });
     form.addEventListener("submit", () => { dirty = false; });
     window.addEventListener("beforeunload", e => {
       if (!dirty) return;

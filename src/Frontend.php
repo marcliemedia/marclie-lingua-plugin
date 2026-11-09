@@ -52,15 +52,15 @@ final class Frontend {
 
 	public static function startBuffer(): void {
 		if ( self::active() ) {
-			$browser       = Settings::browserBlog();
-			self::$post    = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
-			self::$archive = $browser && ( is_home() || is_archive() );
-			$queried       = get_queried_object();
+			$browser             = Settings::browserBlog();
+			self::$post          = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
+			self::$archive       = $browser && ( is_home() || is_archive() );
+			$queried             = get_queried_object();
 			self::$docTranslated = is_singular() && $queried instanceof \WP_Post && PostTranslations::isDocumentType( $queried->post_type )
 				? null !== PostRenderer::translation( $queried->ID )
 				: null;
 			// the state of a page is what an anonymous visitor (and a search engine) gets at its own URL
-			self::$track   = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
+			self::$track = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
 				&& 'GET' === ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
 				&& ( empty( $_GET ) || '' === (string) get_option( 'permalink_structure' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check.
 			ob_start( array( self::class, 'buffer' ) );

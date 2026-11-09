@@ -17,4 +17,6 @@ foreach ( array( 'mlg_settings', 'mlg_paths', 'mlg_incomplete', 'mlg_db_version'
 foreach ( array( 'mlg_sitemap_urls', 'mlg_upgrade_error' ) as $transient ) {
 	delete_transient( $transient );
 }
-delete_metadata( 'user', 0, 'mlg_per_page', '', true );
+foreach ( array( 'mlg_per_page', 'mlg_posts_per_page' ) as $meta ) {
+	delete_metadata( 'user', 0, $meta, '', true );
+}
