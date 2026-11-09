@@ -11,7 +11,7 @@ global $wpdb;
 foreach ( array( 'mlg_translations', 'mlg_strings' ) as $table ) {
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . $table ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- own tables.
 }
-foreach ( array( 'mlg_settings', 'mlg_db_version', 'mlg_scan_token', 'mlg_last_scan', 'mlg_scan_running' ) as $option ) {
+foreach ( array( 'mlg_settings', 'mlg_incomplete', 'mlg_db_version', 'mlg_scan_token', 'mlg_last_scan', 'mlg_scan_running' ) as $option ) {
 	delete_option( $option );
 }
 foreach ( array( 'mlg_sitemap_urls', 'mlg_upgrade_error' ) as $transient ) {

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Marclie Lingua
  * Description:       Translates a WordPress site into other languages from editable string pairs: the page is translated on the server, each language has its own URLs (/en/, /de/ …), with a language switcher (shortcode and Bricks element) and an optional Marclie Booking integration.
- * Version:           0.2.0
+ * Version:           0.2.1
  * Author:            Marclie Agency
  * Requires at least: 6.9
  * Requires PHP:      8.4
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MLG_VERSION', '0.2.0' );
+define( 'MLG_VERSION', '0.2.1' );
 define( 'MLG_FILE', __FILE__ );
 define( 'MLG_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MLG_URL', plugin_dir_url( __FILE__ ) );

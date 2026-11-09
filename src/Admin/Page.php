@@ -1,14 +1,17 @@
 <?php
 /**
- * Admin › Translations: edit the translations of the site's texts, one translated language at a time (tabs), and
- * scan the site for new texts. One POST form saves every changed textarea of the page (tags must match the source)
- * or bulk-deletes.
+ * Admin › Translations: edit the translations of the site's texts, one translated language at a time (tabs with the
+ * share of translated texts), and scan the site for new texts. One POST form saves every changed textarea of the
+ * page (tags must match the source), bulk-deletes, or keeps the original text as the translation (names, codes).
+ * The pages kept out of search engines because they still show untranslated texts are listed above the table.
  */
 
 namespace Marclie\Lingua\Admin;
 
+use Marclie\Lingua\Coverage;
 use Marclie\Lingua\Format;
 use Marclie\Lingua\Lang;
+use Marclie\Lingua\Router;
 use Marclie\Lingua\Scanner;
 use Marclie\Lingua\Settings;
 use Marclie\Lingua\Store;
@@ -132,6 +135,19 @@ final class Page {
 			wp_safe_redirect( self::viewUrl( array( 'mlg_deleted' => $deleted ) ) );
 			exit;
 		}
+		if ( 'original' === $action ) {
+			// names, codes, brands: the translation is the text itself, so the page counts as translated
+			$kept = 0;
+			foreach ( array_map( 'intval', (array) wp_unslash( $_POST['mlg_ids'] ?? array() ) ) as $id ) {
+				$row = Store::find( $id, $lang->code );
+				if ( null !== $row ) {
+					Store::saveTranslation( $id, $lang->code, $row['source'] );
+					++$kept;
+				}
+			}
+			wp_safe_redirect( self::viewUrl( array( 'mlg_saved' => $kept ) ) );
+			exit;
+		}
 
 		$values  = (array) wp_unslash( $_POST['mlg_t'] ?? array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- normalized below; inline tags are rebuilt from the source on output, never printed as HTML.
 		$was     = (array) wp_unslash( $_POST['mlg_was'] ?? array() );
@@ -183,6 +199,7 @@ final class Page {
 			$last = Scanner::lastScan();
 			self::notices( $source, $lang );
 			self::tabs( $lang );
+			self::hiddenPages( $lang );
 			?>
 			<p class="mlg-intro">
 				<?php
@@ -223,23 +240,53 @@ final class Page {
 		<?php
 	}
 
-	/** One tab per translated language (none when there is only one). */
+	/** One tab per translated language with its share of translated texts (none when there is only one). */
 	private static function tabs( Lang $current ): void {
 		$targets = Settings::targets();
-		if ( count( $targets ) < 2 ) {
+		if ( ! $targets ) {
 			return;
 		}
+		$all = Store::count( 'all', $current->code );
 		echo '<nav class="nav-tab-wrapper mlg-tabs" aria-label="' . esc_attr__( 'Translated languages', 'marclie-lingua' ) . '">';
 		foreach ( $targets as $lang ) {
+			$done = $all > 0 ? (int) floor( 100 * ( $all - Store::count( 'new', $lang->code ) ) / $all ) : 100;
 			printf(
-				'<a href="%1$s" class="nav-tab%2$s"%3$s>%4$s</a>',
+				'<a href="%1$s" class="nav-tab%2$s"%3$s>%4$s <span class="mlg-tabs__share">%5$s</span></a>',
 				esc_url( add_query_arg( array( 'page' => self::SLUG, 'mlg_lang' => $lang->code ), admin_url( 'admin.php' ) ) ),
 				$lang->code === $current->code ? ' nav-tab-active' : '',
 				$lang->code === $current->code ? ' aria-current="page"' : '',
-				esc_html( $lang->name )
+				esc_html( $lang->name ),
+				/* translators: %s: percentage of translated texts. */
+				esc_html( sprintf( __( '%s%% translated', 'marclie-lingua' ), number_format_i18n( $done ) ) )
 			);
 		}
 		echo '</nav>';
+	}
+
+	/** Pages of the language kept out of search engines because they still show untranslated texts (Coverage). */
+	private static function hiddenPages( Lang $lang ): void {
+		$pages = Coverage::pages( $lang->code );
+		if ( ! $pages || ! Settings::index() ) {
+			return;
+		}
+		echo '<details class="notice notice-warning mlg-hidden"><summary>';
+		printf(
+			/* translators: 1: number of pages, 2: language name. */
+			esc_html( _n( '%1$s %2$s page is hidden from search engines until its texts are translated.', '%1$s %2$s pages are hidden from search engines until their texts are translated.', count( $pages ), 'marclie-lingua' ) ),
+			esc_html( number_format_i18n( count( $pages ) ) ),
+			esc_html( $lang->name )
+		);
+		echo '</summary><ul>';
+		foreach ( array_slice( $pages, 0, 100, true ) as $path => $missing ) {
+			printf(
+				'<li><a href="%1$s" target="_blank" rel="noopener">%2$s</a> — %3$s</li>',
+				esc_url( Router::url( home_url( $path ), $lang->code ) ),
+				esc_html( $path ),
+				/* translators: %s: number of texts. */
+				esc_html( sprintf( _n( '%s untranslated text', '%s untranslated texts', $missing, 'marclie-lingua' ), number_format_i18n( $missing ) ) )
+			);
+		}
+		echo '</ul><p>' . esc_html__( 'Translate them below (view "Untranslated"; for names and codes use the bulk action "Keep original text"), then open the page or scan the site to update this list.', 'marclie-lingua' ) . '</p></details>';
 	}
 
 	private static function notices( Lang $source, Lang $lang ): void {
@@ -277,7 +324,7 @@ final class Page {
 	public static function ajaxScanStart(): void {
 		self::ajaxGuard();
 		Scanner::start();
-		wp_send_json_success( array( 'urls' => Scanner::urls() ) );
+		wp_send_json_success( array( 'urls' => Scanner::jobs() ) );
 	}
 
 	public static function ajaxScanUrl(): void {

@@ -8,6 +8,7 @@
  * creates carry the marker "mlg-integration" and are deleted in `finally`. Exits 1 on any failure.
  */
 
+use Marclie\Lingua\Coverage;
 use Marclie\Lingua\Format;
 use Marclie\Lingua\Language;
 use Marclie\Lingua\Router;
@@ -63,6 +64,18 @@ $mlgCheck( 'url() is idempotent', Router::url( $once, 'en' ) === $once );
 // --- Language::with ------------------------------------------------------------------------------------------
 $mlgCheck( 'with() switches and restores', 'de' === Language::with( 'de', static fn() => Language::current() ) && 'hr' === Language::current() );
 $mlgCheck( 'with() unknown → source', 'hr' === Language::with( 'xx', static fn() => Language::current() ) );
+
+// --- Coverage: the page path recorded while rendering matches the URLs of sitemaps and hreflang ---------------
+$coverageBefore = get_option( Coverage::OPTION, null );
+try {
+	Coverage::record( 'de', '/mlg-integration/page', 3 );
+	$mlgCheck( 'coverage: recorded path matches its URL', Coverage::isIncomplete( 'de', home_url( '/mlg-integration/page/' ) ) );
+	$mlgCheck( 'coverage: other language unaffected', ! Coverage::isIncomplete( 'en', '/mlg-integration/page/' ) );
+	Coverage::record( 'de', '/mlg-integration/page/', 0 );
+	$mlgCheck( 'coverage: complete page is forgotten', ! Coverage::isIncomplete( 'de', '/mlg-integration/page/' ) && ! isset( Coverage::pages( 'de' )['/mlg-integration/page/'] ) );
+} finally {
+	null === $coverageBefore ? delete_option( Coverage::OPTION ) : update_option( Coverage::OPTION, $coverageBefore, false );
+}
 
 // --- Store per language --------------------------------------------------------------------------------------
 $sources = array();

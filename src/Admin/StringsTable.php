@@ -50,7 +50,10 @@ final class StringsTable extends \WP_List_Table {
 	}
 
 	protected function get_bulk_actions() {
-		return array( 'delete' => esc_html__( 'Delete', 'marclie-lingua' ) );
+		return array(
+			'original' => esc_html__( 'Keep original text', 'marclie-lingua' ),
+			'delete'   => esc_html__( 'Delete', 'marclie-lingua' ),
+		);
 	}
 
 	protected function get_views() {

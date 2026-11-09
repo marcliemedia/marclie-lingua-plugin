@@ -3,11 +3,12 @@
  * One XML sitemap per translated language: `/mlg-sitemap-{code}.xml` (`/?mlg_sitemap={code}` without pretty
  * permalinks), served only while the setting `index` is on.
  *
- * Entries: the site's public URLs (Scanner::urls()) without the 404 page, the blog posts (their translated versions
- * are noindex, see Seo), the IDs of filter `marclie_lingua/sitemap_exclude_ids` (list<int>) and posts or terms whose
- * Rank Math robots meta is noindex — each in the sitemap's language (Router::url()). The source-language list is the
- * same for every language and cached in a transient for 12 hours, deleted when a post or term is saved or deleted
- * and when the settings change.
+ * Entries: the site's public URLs (Scanner::urls()) without the 404 page, the blog posts in browser mode (their
+ * translated versions are noindex, see Seo), the IDs of filter `marclie_lingua/sitemap_exclude_ids` (list<int>) and
+ * posts or terms whose Rank Math robots meta is noindex — each in the sitemap's language (Router::url()), minus the
+ * pages still showing untranslated texts in that language (Coverage). The source-language list is the same for every
+ * language and cached in a transient for 12 hours, deleted when a post or term is saved or deleted and when the
+ * settings change.
  *
  * The sitemaps are listed in Rank Math's sitemap index (`rank_math/sitemap/index`) and in WordPress' own index
  * (`wp-sitemap.xml`, a provider whose entries point to these URLs); each index is only served by its owner.
@@ -96,9 +97,11 @@ final class Sitemap {
 		return $urls;
 	}
 
-	/** @return list<string> Sitemap URLs of a language. */
+	/** @return list<string> Sitemap URLs of a language, without its pages that still show untranslated texts. */
 	public static function urls( string $code ): array {
-		return array_map( static fn( string $url ): string => Router::url( $url, $code ), self::sourceUrls() );
+		$urls = array_filter( self::sourceUrls(), static fn( string $url ): bool => ! Coverage::isIncomplete( $code, $url ) );
+
+		return array_values( array_map( static fn( string $url ): string => Router::url( $url, $code ), $urls ) );
 	}
 
 	public static function serve(): void {
@@ -195,7 +198,7 @@ final class Sitemap {
 	/** @return list<string> */
 	private static function build(): array {
 		$exclude = array( home_url( '/mlg-page-not-found/' ) );
-		$ids     = get_posts(
+		$ids     = ! Settings::browserBlog() ? array() : get_posts(
 			array(
 				'post_type'        => Blog::types(),
 				'post_status'      => 'publish',

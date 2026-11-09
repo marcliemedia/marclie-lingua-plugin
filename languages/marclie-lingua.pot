@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Marclie Lingua plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Marclie Lingua 0.2.0\n"
+"Project-Id-Version: Marclie Lingua 0.2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/marclie-lingua\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-09T03:49:30+00:00\n"
+"POT-Creation-Date: 2026-11-09T04:06:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: marclie-lingua\n"
@@ -29,89 +29,115 @@ msgstr ""
 msgid "Marclie Agency"
 msgstr ""
 
-#: src/Admin/Page.php:53
-#: src/Admin/Page.php:54
-#: src/Admin/Page.php:169
-#: src/Admin/SettingsPage.php:29
+#: src/Admin/Page.php:56
+#: src/Admin/Page.php:57
+#: src/Admin/Page.php:185
+#: src/Admin/SettingsPage.php:30
 msgid "Translations"
 msgstr ""
 
-#: src/Admin/Page.php:68
+#: src/Admin/Page.php:71
 msgid "Strings per page"
 msgstr ""
 
-#: src/Admin/Page.php:89
+#: src/Admin/Page.php:92
 msgid "Collecting the pages…"
 msgstr ""
 
 #. translators: 1: pages done, 2: all pages.
-#: src/Admin/Page.php:91
+#: src/Admin/Page.php:94
 #, php-format
 msgid "Scanning page %1$s of %2$s…"
 msgstr ""
 
 #. translators: %s: number of pages.
-#: src/Admin/Page.php:93
+#: src/Admin/Page.php:96
 #, php-format
 msgid "%s pages could not be loaded; the scan was not recorded. Try again."
 msgstr ""
 
-#: src/Admin/Page.php:94
+#: src/Admin/Page.php:97
 msgid "The scan stopped because of an error."
 msgstr ""
 
-#: src/Admin/Page.php:95
+#: src/Admin/Page.php:98
 msgid "You have unsaved translations."
 msgstr ""
 
-#: src/Admin/Page.php:117
+#: src/Admin/Page.php:120
 msgid "You are not allowed to edit translations."
 msgstr ""
 
-#: src/Admin/Page.php:175
+#: src/Admin/Page.php:191
 msgid "No translated language is set up yet."
 msgstr ""
 
-#: src/Admin/Page.php:177
+#: src/Admin/Page.php:193
 msgid "Add a language in the settings."
 msgstr ""
 
 #. translators: 1: source language name, 2: translated language name.
-#: src/Admin/Page.php:191
+#: src/Admin/Page.php:208
 #, php-format
 msgid "Each row is one text of the site in %1$s with its %2$s translation; an empty translation shows the %1$s text. Keep the tags such as <strong>…</strong> or <a>…</a> of the text in the translation: they carry the bold text, links and icons."
 msgstr ""
 
-#: src/Admin/Page.php:198
+#: src/Admin/Page.php:215
 msgid "Scan the site"
 msgstr ""
 
 #. translators: %s: date and time.
-#: src/Admin/Page.php:204
+#: src/Admin/Page.php:221
 #, php-format
 msgid "Last scan: %s. Run a scan after adding or changing content to list the new texts."
 msgstr ""
 
-#: src/Admin/Page.php:205
+#: src/Admin/Page.php:222
 msgid "Run a scan after adding or changing content to list the new texts."
 msgstr ""
 
-#: src/Admin/Page.php:215
+#: src/Admin/Page.php:232
 msgid "Search texts"
 msgstr ""
 
-#: src/Admin/Page.php:220
+#: src/Admin/Page.php:237
 msgid "Save changes"
 msgstr ""
 
-#: src/Admin/Page.php:232
-#: src/Admin/SettingsPage.php:109
-#: src/Admin/SettingsPage.php:112
+#: src/Admin/Page.php:250
+#: src/Admin/SettingsPage.php:111
+#: src/Admin/SettingsPage.php:114
 msgid "Translated languages"
 msgstr ""
 
+#. translators: %s: percentage of translated texts.
+#: src/Admin/Page.php:260
+#, php-format
+msgid "%s%% translated"
+msgstr ""
+
+#. translators: 1: number of pages, 2: language name.
+#: src/Admin/Page.php:275
+#, php-format
+msgid "%1$s %2$s page is hidden from search engines until its texts are translated."
+msgid_plural "%1$s %2$s pages are hidden from search engines until their texts are translated."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: number of texts.
+#: src/Admin/Page.php:286
+#, php-format
+msgid "%s untranslated text"
+msgid_plural "%s untranslated texts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Page.php:289
+msgid "Translate them below (view \"Untranslated\"; for names and codes use the bulk action \"Keep original text\"), then open the page or scan the site to update this list."
+msgstr ""
+
 #. translators: %s: number of translations.
-#: src/Admin/Page.php:250
+#: src/Admin/Page.php:297
 #, php-format
 msgid "%s translation saved."
 msgid_plural "%s translations saved."
@@ -119,131 +145,152 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of strings.
-#: src/Admin/Page.php:255
+#: src/Admin/Page.php:302
 #, php-format
 msgid "%s text deleted."
 msgid_plural "%s texts deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/Page.php:261
+#: src/Admin/Page.php:308
 msgid "Not saved: the translation must use the same tags as the original text, each closed."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:29
+#: src/Admin/SettingsPage.php:30
 msgid "Texts"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:30
-#: src/Admin/SettingsPage.php:88
+#: src/Admin/SettingsPage.php:31
+#: src/Admin/SettingsPage.php:90
 msgid "Translation settings"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:30
+#: src/Admin/SettingsPage.php:31
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:70
+#: src/Admin/SettingsPage.php:71
 msgid "The source language was not changed: confirm that every stored text and translation may be deleted."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:74
+#: src/Admin/SettingsPage.php:76
 msgid "Source language changed; every stored text was deleted. Scan the site to collect the texts again."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:95
+#: src/Admin/SettingsPage.php:97
 msgid "Source language"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:102
+#: src/Admin/SettingsPage.php:104
 msgid "The language the content is written in. It is the default language: its pages keep their URLs without a language prefix."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:104
+#: src/Admin/SettingsPage.php:106
 msgid "Changing it deletes every stored text and translation (they belong to the current source language)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:122
+#: src/Admin/SettingsPage.php:124
 msgid "Position in the language switcher"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:127
+#: src/Admin/SettingsPage.php:129
 msgid "Each language gets its URLs under its prefix. The number sets its position in the language switcher."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:131
+#: src/Admin/SettingsPage.php:133
 msgid "Marclie Booking"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:134
+#: src/Admin/SettingsPage.php:136
 msgid "Marclie Booking integration"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:137
+#: src/Admin/SettingsPage.php:139
 msgid "Automatic: on when Marclie Booking is active and supports it"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:138
+#: src/Admin/SettingsPage.php:140
 msgid "On"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:139
+#: src/Admin/SettingsPage.php:141
 msgid "Off: booking widgets are translated like any other text"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:150
+#: src/Admin/SettingsPage.php:152
 msgid "Search engines"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:152
+#: src/Admin/SettingsPage.php:154
 msgid "Let search engines index the translated pages (hreflang links, own canonical URL, language sitemaps)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:153
-msgid "When off, translated pages are \"noindex, follow\"."
+#: src/Admin/SettingsPage.php:155
+msgid "When off, translated pages are \"noindex, follow\". When on, a translated page is still \"noindex, follow\" while it shows texts that are not translated yet (a page in two languages is a poor search result); it is indexed once every text on it is translated."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:157
+msgid "Version for searchers whose language the site does not have (x-default):"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:167
+#: src/Admin/SettingsPage.php:170
+msgid "Blog posts"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:171
+msgid "Translate like the other pages (texts stored and edited here; translated posts can be found in search engines)"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:172
+msgid "Translate in the visitor's browser (parts marked data-mlg-skip; nothing to translate here, but translated posts are not indexed)"
 msgstr ""
 
 #: src/Admin/StringsTable.php:48
 msgid "Status"
 msgstr ""
 
-#: src/Admin/StringsTable.php:53
+#: src/Admin/StringsTable.php:54
+msgid "Keep original text"
+msgstr ""
+
+#: src/Admin/StringsTable.php:55
 msgid "Delete"
 msgstr ""
 
-#: src/Admin/StringsTable.php:59
+#: src/Admin/StringsTable.php:62
 msgid "All"
 msgstr ""
 
-#: src/Admin/StringsTable.php:60
-#: src/Admin/StringsTable.php:147
+#: src/Admin/StringsTable.php:63
+#: src/Admin/StringsTable.php:150
 msgid "Untranslated"
 msgstr ""
 
-#: src/Admin/StringsTable.php:61
-#: src/Admin/StringsTable.php:148
+#: src/Admin/StringsTable.php:64
+#: src/Admin/StringsTable.php:151
 msgid "Automatic"
 msgstr ""
 
-#: src/Admin/StringsTable.php:62
-#: src/Admin/StringsTable.php:149
+#: src/Admin/StringsTable.php:65
+#: src/Admin/StringsTable.php:152
 msgid "Edited"
 msgstr ""
 
-#: src/Admin/StringsTable.php:65
+#: src/Admin/StringsTable.php:68
 msgid "Not found by the last scan"
 msgstr ""
 
-#: src/Admin/StringsTable.php:98
+#: src/Admin/StringsTable.php:101
 msgid "No strings here."
 msgstr ""
 
-#: src/Admin/StringsTable.php:120
+#: src/Admin/StringsTable.php:123
 msgid "Page:"
 msgstr ""
 
 #. translators: %s: language name.
-#: src/Admin/StringsTable.php:136
+#: src/Admin/StringsTable.php:139
 #, php-format
 msgid "Translation (%s)"
 msgstr ""
@@ -308,10 +355,6 @@ msgstr ""
 
 #: src/Integrations/Booking.php:107
 msgid "Marclie Booking detected: the integration is off."
-msgstr ""
-
-#: src/Scanner.php:92
-msgid "No translated language is set up."
 msgstr ""
 
 #: src/Switcher.php:158

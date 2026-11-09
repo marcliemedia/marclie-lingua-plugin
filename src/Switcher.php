@@ -138,7 +138,7 @@ final class Switcher {
 			$active = $lang->code === $current->code;
 			$href   = '' !== $base ? Router::url( $base, $lang->code ) : Router::switchUrl( $lang->code );
 			$items .= sprintf(
-				'<li class="mlg-switch__item"><a class="mlg-switch__option%1$s" href="%2$s" lang="%3$s" hreflang="%3$s"%4$s data-mlg-lang="%5$s">%6$s%7$s</a></li>',
+				'<li class="mlg-switch__item"><a class="mlg-switch__option%1$s" href="%2$s" lang="%3$s" hreflang="%5$s"%4$s data-mlg-lang="%5$s">%6$s%7$s</a></li>',
 				$active ? ' is-active' : '',
 				esc_url( $href ),
 				esc_attr( $lang->bcp47 ),

@@ -1,10 +1,13 @@
 <?php
 /**
  * Option `mlg_settings`:
- * - `source`  code of the language the content is written in (the default language, served without URL prefix);
- * - `targets` codes of the translated languages, in switcher order (served under `/{code}/`);
- * - `booking` Marclie Booking integration: `auto` (on when Booking supports it), `on`, `off`;
- * - `index`   translated pages may be indexed (hreflang, canonical, sitemap) — else `noindex, follow`.
+ * - `source`   code of the language the content is written in (the default language, served without URL prefix);
+ * - `targets`  codes of the translated languages, in switcher order (served under `/{code}/`);
+ * - `booking`  Marclie Booking integration: `auto` (on when Booking supports it), `on`, `off`;
+ * - `index`    translated pages may be indexed (hreflang, canonical, sitemap) — else `noindex, follow`;
+ * - `xdefault` language of the `hreflang="x-default"` link (searchers whose language the site does not have);
+ * - `blog`     blog posts: `stored` (translated from stored pairs like any page, indexable) or `browser`
+ *              (parts marked `data-mlg-skip` translated in the visitor's browser; translated versions noindex).
  */
 
 namespace Marclie\Lingua;
@@ -17,7 +20,9 @@ final class Settings {
 
 	public const BOOKING_MODES = array( 'auto', 'on', 'off' );
 
-	/** @var array{source: string, targets: list<string>, booking: string, index: bool}|null */
+	public const BLOG_MODES = array( 'stored', 'browser' );
+
+	/** @var array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string}|null */
 	private static ?array $cache = null;
 
 	public static function hooks(): void {
@@ -29,19 +34,22 @@ final class Settings {
 		self::$cache = null;
 	}
 
-	/** @return array{source: string, targets: list<string>, booking: string, index: bool} */
+	/** @return array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string} */
 	public static function defaults(): array {
 		$source = Languages::fromLocale( (string) get_locale() );
+		$code   = null !== $source ? $source->code : 'en';
 
 		return array(
-			'source'  => null !== $source ? $source->code : 'en',
-			'targets' => array(),
-			'booking' => 'auto',
-			'index'   => true,
+			'source'   => $code,
+			'targets'  => array(),
+			'booking'  => 'auto',
+			'index'    => true,
+			'xdefault' => $code,
+			'blog'     => 'stored',
 		);
 	}
 
-	/** @return array{source: string, targets: list<string>, booking: string, index: bool} */
+	/** @return array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string} */
 	public static function get(): array {
 		if ( null === self::$cache ) {
 			$stored      = get_option( self::OPTION, null );
@@ -53,7 +61,7 @@ final class Settings {
 
 	/**
 	 * @param array<string, mixed> $input
-	 * @return array{source: string, targets: list<string>, booking: string, index: bool}
+	 * @return array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string}
 	 */
 	public static function sanitize( array $input ): array {
 		$defaults = self::defaults();
@@ -68,13 +76,17 @@ final class Settings {
 				$targets[] = $code;
 			}
 		}
-		$booking = (string) ( $input['booking'] ?? 'auto' );
+		$booking  = (string) ( $input['booking'] ?? 'auto' );
+		$xdefault = sanitize_key( (string) ( $input['xdefault'] ?? $source ) );
+		$blog     = (string) ( $input['blog'] ?? 'stored' );
 
 		return array(
-			'source'  => $source,
-			'targets' => $targets,
-			'booking' => in_array( $booking, self::BOOKING_MODES, true ) ? $booking : 'auto',
-			'index'   => ! empty( $input['index'] ),
+			'source'   => $source,
+			'targets'  => $targets,
+			'booking'  => in_array( $booking, self::BOOKING_MODES, true ) ? $booking : 'auto',
+			'index'    => ! empty( $input['index'] ),
+			'xdefault' => in_array( $xdefault, $targets, true ) ? $xdefault : $source,
+			'blog'     => in_array( $blog, self::BLOG_MODES, true ) ? $blog : 'stored',
 		);
 	}
 
@@ -123,5 +135,15 @@ final class Settings {
 
 	public static function index(): bool {
 		return self::get()['index'];
+	}
+
+	/** Language of the `hreflang="x-default"` link. */
+	public static function xDefault(): Lang {
+		return self::lang( self::get()['xdefault'] ) ?? self::source();
+	}
+
+	/** Blog posts translated in the visitor's browser (not stored, not indexed in translated languages). */
+	public static function browserBlog(): bool {
+		return 'browser' === self::get()['blog'];
 	}
 }

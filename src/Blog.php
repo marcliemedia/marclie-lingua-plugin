@@ -1,6 +1,9 @@
 <?php
 /**
- * Blog posts in translated languages: not stored as translations. Their parts — elements marked `data-mlg-skip`
+ * Blog posts in translated languages. Setting `blog`:
+ * - `stored` (default): posts are translated from stored pairs like every other page and can be indexed;
+ * - `browser`: posts are not stored as translations (free and quick, but their translated versions are noindex).
+ *   Their parts — elements marked `data-mlg-skip`
  * and, on archives, the Bricks Posts items linking to a post — are left out of the string translation and printed
  * with `lang="{source}" data-mlg-browser` (HtmlTranslator); a single post page keeps its source `<html lang>`,
  * `<title>` and metas (Frontend). `assets/browser-translate.js` then translates those parts in the visitor's
@@ -29,7 +32,7 @@ final class Blog {
 	}
 
 	public static function script(): void {
-		if ( ! Frontend::active() ) {
+		if ( ! Frontend::active() || ! Settings::browserBlog() ) {
 			return;
 		}
 		wp_enqueue_script( 'mlg-browser-translate', MLG_URL . 'assets/browser-translate.js', array(), (string) filemtime( MLG_DIR . 'assets/browser-translate.js' ), array( 'strategy' => 'defer', 'in_footer' => true ) );
