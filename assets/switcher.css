@@ -1,0 +1,85 @@
+/*
+ * Marclie Lingua — language switcher (src/Switcher.php). Pill button + dropdown list.
+ * Every value is a custom property on .mlg-switch with a fallback to common design tokens (--radius-full,
+ * --bg-surface, --text-title, --dark-5 …): on a site defining those tokens the switcher takes their look.
+ * The context is wrapped in :where(), so each rule weighs a single class: it beats theme element rules
+ * (ul, li, a, button) and any theme class overrides it.
+ */
+:where(.mlg-switch) {
+	--mlg-switch-radius: var(--radius-full, 999px);
+	--mlg-switch-bg: var(--bg-surface, #fff);
+	--mlg-switch-color: var(--text-title, #1f1f1f);
+	--mlg-switch-hover: var(--dark-10, rgb(0 0 0 / .1));
+	--mlg-switch-option-hover: var(--dark-5, rgb(0 0 0 / .05));
+	--mlg-switch-shadow: var(--shadow-l, 0 2px 6px rgb(0 0 0 / .05), 0 16px 40px rgb(0 0 0 / .1));
+	--mlg-switch-border: var(--border-subtle, rgb(0 0 0 / .08));
+	--mlg-switch-active: var(--active, currentColor);
+	--mlg-switch-focus: var(--focus, currentColor);
+	--mlg-switch-font: var(--font-family, inherit);
+	--mlg-switch-gap: var(--space-3xs, 4px);
+	--mlg-switch-pad-x: var(--space-s, 11px);
+	--mlg-switch-pad-y: var(--space-xs, 8px);
+	--mlg-switch-text: var(--text-xs, 12.5px);
+	--mlg-switch-option-text: var(--text-s, 14px);
+	--mlg-switch-strong: var(--font-weight-strong, 500);
+	--mlg-switch-body: var(--font-weight-body, 400);
+	position: relative;
+	display: inline-block;
+	flex: none;
+}
+
+:where(.mlg-switch) .mlg-switch__toggle {
+	display: inline-flex; align-items: center; gap: var(--mlg-switch-gap);
+	min-height: 32px; margin: 0; padding: 0 var(--mlg-switch-pad-x);
+	border: 0; border-radius: var(--mlg-switch-radius); box-shadow: none;
+	background: var(--mlg-switch-bg); color: var(--mlg-switch-color);
+	font-family: var(--mlg-switch-font); font-size: var(--mlg-switch-text); line-height: var(--line-height-m, 1.3);
+	font-weight: var(--mlg-switch-strong); letter-spacing: normal; text-transform: none;
+	white-space: nowrap; cursor: pointer; transition: background-color .2s ease;
+}
+:where(.mlg-switch) .mlg-switch__toggle:hover,
+:where(.mlg-switch) .mlg-switch__toggle[aria-expanded="true"] { background: var(--mlg-switch-hover); color: var(--mlg-switch-color); }
+:where(.mlg-switch) .mlg-switch__toggle:focus-visible { outline: 2px solid var(--mlg-switch-focus); outline-offset: 2px; }
+
+:where(.mlg-switch) .mlg-switch__icon,
+:where(.mlg-switch) .mlg-switch__caret,
+:where(.mlg-switch) .mlg-switch__check { width: 16px; height: 16px; flex: none; display: inline-block; fill: currentColor; }
+:where(.mlg-switch) .mlg-switch__caret { transition: transform .2s ease; }
+:where(.mlg-switch) .mlg-switch__toggle[aria-expanded="true"] .mlg-switch__caret { transform: rotate(180deg); }
+:where(.mlg-switch) .mlg-switch__check { color: var(--mlg-switch-active); }
+
+:where(.mlg-switch) .mlg-switch__sr {
+	position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+	clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:where(.mlg-switch) .mlg-switch__menu {
+	position: absolute; top: calc(100% + var(--mlg-switch-gap)); left: 0; right: auto; z-index: 60;
+	min-width: 168px; margin: 0; padding: var(--mlg-switch-gap); list-style: none;
+	border: 1px solid var(--mlg-switch-border); border-radius: var(--radius-m, 12px);
+	background: var(--mlg-switch-bg); box-shadow: var(--mlg-switch-shadow);
+}
+:where(.mlg-switch) .mlg-switch__menu[hidden] { display: none; }
+/* hover bridge from the button down to the list */
+:where(.mlg-switch) .mlg-switch__menu::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: var(--mlg-switch-gap); }
+:where(.mlg-switch--align-right) .mlg-switch__menu { left: auto; right: 0; }
+
+:where(.mlg-switch) .mlg-switch__item { margin: 0; padding: 0; list-style: none; }
+:where(.mlg-switch) .mlg-switch__item::before,
+:where(.mlg-switch) .mlg-switch__item::marker { content: none; }
+
+:where(.mlg-switch) .mlg-switch__option {
+	display: flex; align-items: center; justify-content: space-between; gap: var(--mlg-switch-pad-x);
+	padding: var(--mlg-switch-pad-y) var(--mlg-switch-pad-x); border-radius: var(--radius-s, 8px);
+	color: var(--mlg-switch-color); font-family: var(--mlg-switch-font); font-size: var(--mlg-switch-option-text);
+	line-height: var(--line-height-l, 1.4); font-weight: var(--mlg-switch-body);
+	text-decoration: none; white-space: nowrap; box-shadow: none;
+}
+:where(.mlg-switch) .mlg-switch__option:hover { background: var(--mlg-switch-option-hover); color: var(--mlg-switch-color); text-decoration: none; }
+:where(.mlg-switch) .mlg-switch__option.is-active { font-weight: var(--mlg-switch-strong); }
+:where(.mlg-switch) .mlg-switch__option:focus-visible { outline: 2px solid var(--mlg-switch-focus); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+	:where(.mlg-switch) .mlg-switch__toggle,
+	:where(.mlg-switch) .mlg-switch__caret { transition: none; }
+}

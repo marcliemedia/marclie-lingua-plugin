@@ -1,4 +1,4 @@
-/* Marclie Lingua admin › Translations */
+/* Marclie Lingua admin › Translations, Settings */
 .mlg-intro { max-width: 860px; }
 .mlg-scan { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 4px; }
 .mlg-scan__status { color: #50575e; }
@@ -14,3 +14,7 @@
 .mlg-invalid { margin: 0 0 8px 18px; list-style: disc; }
 .mlg-invalid li { margin-bottom: 6px; }
 .mlg-search .search-box { margin: 0 0 8px; }
+.mlg-tabs { margin-bottom: 12px; }
+.mlg-langs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 4px 24px; max-width: 1100px; }
+.mlg-langs__item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.mlg-langs__item input[type="number"] { width: 4.5em; }

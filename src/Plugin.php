@@ -21,6 +21,9 @@ final class Plugin {
 		Router::hooks();
 		Frontend::hooks();
 		Blog::hooks();
+		Seo::hooks();
+		Sitemap::hooks();
+		Switcher::hooks();
 		Integrations\Booking::hooks();
 		if ( is_admin() ) {
 			Admin\Page::hooks();

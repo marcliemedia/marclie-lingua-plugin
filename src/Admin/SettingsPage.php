@@ -27,7 +27,13 @@ final class SettingsPage {
 
 	public static function menu(): void {
 		add_submenu_page( Page::SLUG, __( 'Translations', 'marclie-lingua' ), __( 'Texts', 'marclie-lingua' ), Page::capability(), Page::SLUG );
-		add_submenu_page( Page::SLUG, __( 'Translation settings', 'marclie-lingua' ), __( 'Settings', 'marclie-lingua' ), Page::capability(), self::SLUG, array( self::class, 'render' ) );
+		$hook = (string) add_submenu_page( Page::SLUG, __( 'Translation settings', 'marclie-lingua' ), __( 'Settings', 'marclie-lingua' ), Page::capability(), self::SLUG, array( self::class, 'render' ) );
+		add_action(
+			'load-' . $hook,
+			static function (): void {
+				add_action( 'admin_enqueue_scripts', static fn() => wp_enqueue_style( 'mlg-admin', MLG_URL . 'assets/admin.css', array(), (string) filemtime( MLG_DIR . 'assets/admin.css' ) ) );
+			}
+		);
 	}
 
 	public static function register(): void {
