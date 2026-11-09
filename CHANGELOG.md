@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 — 2026-11-09
+
+### Fixed
+- Admin: icons in buttons ("Scan the site") sat below the text; they are centred again and spin around their centre.
+
 ## 0.3.0 — 2026-11-09
 
 ### Added
