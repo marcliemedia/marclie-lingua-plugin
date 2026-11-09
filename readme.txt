@@ -4,7 +4,7 @@ Tags: translation, multilingual, languages, hreflang, bricks
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 8.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: Proprietary
 
 Translates a WordPress site into other languages from editable string pairs, with language URLs, a language

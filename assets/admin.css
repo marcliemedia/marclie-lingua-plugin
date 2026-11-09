@@ -50,9 +50,12 @@
 .mlg-back a { display: inline-flex; align-items: center; gap: 2px; text-decoration: none; }
 .mlg-back .dashicons { font-size: 16px; width: 16px; height: 16px; }
 
+/* Icons: WordPress' button styles give .dashicons a tall line-height, which pushes the glyph below the centre */
+.mlg .dashicons { line-height: 1; }
+
 /* Buttons with an icon */
 .mlg .button:has(> .dashicons) { display: inline-flex; align-items: center; gap: 4px; }
-.mlg .button > .dashicons { font-size: 16px; width: 16px; height: 16px; }
+.mlg .button > .dashicons { font-size: 16px; width: 16px; height: 16px; line-height: 16px; }
 .mlg .button.is-busy > .dashicons-update { animation: mlg-spin 1s linear infinite; }
 @keyframes mlg-spin { to { transform: rotate(360deg); } }
 
