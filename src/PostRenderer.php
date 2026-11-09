@@ -96,7 +96,12 @@ final class PostRenderer {
 		if ( null === $row ) {
 			return $pages;
 		}
+		// split as WordPress splits the original (WP_Query::generate_postdata)
 		$content = str_replace( array( "\n<!--nextpage-->\n", "\n<!--nextpage-->", "<!--nextpage-->\n" ), '<!--nextpage-->', (string) $row['content'] );
+		$content = str_replace( array( '<!-- wp:nextpage -->', '<!-- /wp:nextpage -->' ), '', $content );
+		if ( str_starts_with( $content, '<!--nextpage-->' ) ) {
+			$content = substr( $content, 15 );
+		}
 
 		return explode( '<!--nextpage-->', $content );
 	}
@@ -185,14 +190,20 @@ final class PostRenderer {
 		return $text;
 	}
 
-	/** The translation of the post shown on this page (singular, not password-locked). @return array<string, mixed>|null */
+	/** The translation of the post shown on this page (singular). @return array<string, mixed>|null */
 	private static function current(): ?array {
 		if ( ! is_singular() ) {
 			return null;
 		}
 		$post = get_queried_object();
 
-		return $post instanceof \WP_Post && ! post_password_required( $post ) ? self::translation( $post->ID ) : null;
+		return $post instanceof \WP_Post ? self::translation( $post->ID ) : null;
+	}
+
+	private static function locked(): bool {
+		$post = get_queried_object();
+
+		return $post instanceof \WP_Post && post_password_required( $post );
 	}
 
 	/**
@@ -239,6 +250,9 @@ final class PostRenderer {
 		$row = self::current();
 		if ( null === $row ) {
 			return $description;
+		}
+		if ( self::locked() ) {
+			return ''; // titles of protected posts are public (as in core), their text is not
 		}
 		if ( '' !== $row['seo_description'] ) {
 			return (string) $row['seo_description'];

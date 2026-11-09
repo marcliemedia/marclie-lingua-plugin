@@ -39,7 +39,9 @@ description (Translations › Posts, or the "Translations" box on the post's edi
   "Mark as reviewed" clears it;
 * lists of posts (blog page, categories, query loops) in a language show only the posts translated into it; a post
   opened in a language it is not translated into shows the original and is `noindex`;
-* the site search in a language searches the translations.
+* the site search in a language searches the translations;
+* a translation split with `<!--nextpage-->` should have as many pages as the original (WordPress counts the
+  original's pages).
 
 Translating with AI (or a translator) outside WordPress:
 
