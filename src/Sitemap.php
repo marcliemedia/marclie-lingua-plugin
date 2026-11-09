@@ -43,8 +43,14 @@ final class Sitemap {
 		add_rewrite_rule( self::RULE, 'index.php?' . self::QUERY_VAR . '=$matches[1]', 'top' );
 	}
 
-	/** Adds the rule to the stored rewrite rules when they were built without it. */
+	/**
+	 * Adds the rule to the stored rewrite rules when they were built without it (after activation or an update).
+	 * Only in admin requests: a flush elsewhere could drop rules other plugins register for admin only.
+	 */
 	public static function maybeFlushRules(): void {
+		if ( ! is_admin() || wp_doing_ajax() ) {
+			return;
+		}
 		$rules = get_option( 'rewrite_rules' );
 		if ( is_array( $rules ) && $rules && ! isset( $rules[ self::RULE ] ) ) {
 			flush_rewrite_rules( false );
@@ -100,7 +106,7 @@ final class Sitemap {
 		if ( ! is_string( $code ) || '' === $code ) {
 			return;
 		}
-		if ( ! in_array( $code, self::codes(), true ) ) {
+		if ( ! in_array( $code, self::codes(), true ) || null !== Router::current() ) {
 			global $wp_query;
 			$wp_query->set_404();
 			status_header( 404 );

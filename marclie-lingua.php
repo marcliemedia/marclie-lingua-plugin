@@ -32,6 +32,8 @@ spl_autoload_register(
 require MLG_DIR . 'src/functions.php';
 
 register_activation_hook( MLG_FILE, array( \Marclie\Lingua\Install::class, 'activate' ) );
+// the language sitemap rule goes with the plugin: WordPress rebuilds the rules on the next request
+register_deactivation_hook( MLG_FILE, static fn() => delete_option( 'rewrite_rules' ) );
 
 \Marclie\Lingua\Router::boot();
 \Marclie\Lingua\Plugin::boot();

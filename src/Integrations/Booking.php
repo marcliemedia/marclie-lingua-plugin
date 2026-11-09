@@ -32,11 +32,18 @@ final class Booking {
 		'[data-mbk-pay-balance]', '[data-mbk-account]',
 	);
 
-	/** Booking funnel and account pages (Booking settings page keys): noindex, outside the language sitemaps. */
+	/** Booking funnel and account pages (Booking settings page keys; Booking makes them noindex): kept out of the language sitemaps. */
 	public const FUNNEL_PAGES = array( 'rezervacija', 'hvala', 'placanje', 'pretraga', 'prijava', 'registracija', 'moj_racun', 'zaboravljena_lozinka' );
 
+	/**
+	 * Filters are added when the plugin loads (Booking may resolve its driver on any `plugins_loaded` priority); each
+	 * callback checks whether the integration is on.
+	 */
 	public static function hooks(): void {
-		add_action( 'plugins_loaded', array( self::class, 'connect' ), 0 );
+		add_filter( 'marclie_lingua/skip_selectors', static fn( $selectors ) => self::enabled() ? array_merge( (array) $selectors, self::SKIP ) : $selectors );
+		add_filter( 'marclie_lingua/sitemap_exclude_ids', static fn( $ids ) => self::enabled() ? array_merge( (array) $ids, self::funnelPageIds() ) : $ids );
+		add_filter( 'marclie_booking/languages', static fn( $langs ) => self::enabled() && self::supported() ? self::languages() : $langs );
+		add_filter( 'marclie_booking/language_driver', static fn( $driver ) => self::enabled() && self::supported() ? new BookingDriver() : $driver );
 	}
 
 	public static function present(): bool {
@@ -53,18 +60,6 @@ final class Booking {
 			'on'    => self::present(),
 			default => self::supported(),
 		};
-	}
-
-	public static function connect(): void {
-		if ( ! self::enabled() ) {
-			return;
-		}
-		add_filter( 'marclie_lingua/skip_selectors', static fn( $selectors ) => array_merge( (array) $selectors, self::SKIP ) );
-		add_filter( 'marclie_lingua/sitemap_exclude_ids', static fn( $ids ) => array_merge( (array) $ids, self::funnelPageIds() ) );
-		if ( self::supported() ) {
-			add_filter( 'marclie_booking/languages', array( self::class, 'languages' ) );
-			add_filter( 'marclie_booking/language_driver', array( self::class, 'driver' ) );
-		}
 	}
 
 	/**
@@ -84,11 +79,6 @@ final class Booking {
 		}
 
 		return $out;
-	}
-
-	/** @param mixed $driver */
-	public static function driver( $driver ): object {
-		return new BookingDriver();
 	}
 
 	/** @return list<int> */

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-09T03:35:47+00:00\n"
+"POT-Creation-Date: 2026-11-09T03:49:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: marclie-lingua\n"
@@ -105,8 +105,8 @@ msgid "Save changes"
 msgstr ""
 
 #: src/Admin/Page.php:232
-#: src/Admin/SettingsPage.php:108
-#: src/Admin/SettingsPage.php:111
+#: src/Admin/SettingsPage.php:109
+#: src/Admin/SettingsPage.php:112
 msgid "Translated languages"
 msgstr ""
 
@@ -135,7 +135,7 @@ msgid "Texts"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:30
-#: src/Admin/SettingsPage.php:87
+#: src/Admin/SettingsPage.php:88
 msgid "Translation settings"
 msgstr ""
 
@@ -143,63 +143,63 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:69
+#: src/Admin/SettingsPage.php:70
 msgid "The source language was not changed: confirm that every stored text and translation may be deleted."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:73
+#: src/Admin/SettingsPage.php:74
 msgid "Source language changed; every stored text was deleted. Scan the site to collect the texts again."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:94
+#: src/Admin/SettingsPage.php:95
 msgid "Source language"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:101
+#: src/Admin/SettingsPage.php:102
 msgid "The language the content is written in. It is the default language: its pages keep their URLs without a language prefix."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:103
+#: src/Admin/SettingsPage.php:104
 msgid "Changing it deletes every stored text and translation (they belong to the current source language)."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:121
+#: src/Admin/SettingsPage.php:122
 msgid "Position in the language switcher"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:126
+#: src/Admin/SettingsPage.php:127
 msgid "Each language gets its URLs under its prefix. The number sets its position in the language switcher."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:130
+#: src/Admin/SettingsPage.php:131
 msgid "Marclie Booking"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:133
+#: src/Admin/SettingsPage.php:134
 msgid "Marclie Booking integration"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:136
+#: src/Admin/SettingsPage.php:137
 msgid "Automatic: on when Marclie Booking is active and supports it"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:137
+#: src/Admin/SettingsPage.php:138
 msgid "On"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:138
+#: src/Admin/SettingsPage.php:139
 msgid "Off: booking widgets are translated like any other text"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:149
+#: src/Admin/SettingsPage.php:150
 msgid "Search engines"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:151
+#: src/Admin/SettingsPage.php:152
 msgid "Let search engines index the translated pages (hreflang links, own canonical URL, language sitemaps)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:152
+#: src/Admin/SettingsPage.php:153
 msgid "When off, translated pages are \"noindex, follow\"."
 msgstr ""
 
@@ -286,23 +286,27 @@ msgstr ""
 msgid "Add a target language in Marclie Lingua settings to show the switcher."
 msgstr ""
 
-#: src/Integrations/Booking.php:107
+#: src/Install.php:56
+msgid "Marclie Lingua could not update its database tables; translated pages may be incomplete. The update is retried on every admin page."
+msgstr ""
+
+#: src/Integrations/Booking.php:97
 msgid "Marclie Booking is not active."
 msgstr ""
 
-#: src/Integrations/Booking.php:111
+#: src/Integrations/Booking.php:101
 msgid "Marclie Booking is active but this version does not support the language integration: its widgets are left untranslated and keep their own language."
 msgstr ""
 
-#: src/Integrations/Booking.php:112
+#: src/Integrations/Booking.php:102
 msgid "Marclie Booking is active but this version does not support the language integration."
 msgstr ""
 
-#: src/Integrations/Booking.php:116
+#: src/Integrations/Booking.php:106
 msgid "Marclie Booking detected: the integration is on."
 msgstr ""
 
-#: src/Integrations/Booking.php:117
+#: src/Integrations/Booking.php:107
 msgid "Marclie Booking detected: the integration is off."
 msgstr ""
 

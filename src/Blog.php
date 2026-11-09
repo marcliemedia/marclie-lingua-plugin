@@ -9,7 +9,8 @@
  * Other browsers offer their own "Translate this page" on a single post.
  *
  * Filter `marclie_lingua/browser_fixes`: list of [ regex source, regex flags, replacement ] applied to the machine
- * translation (proper names the model translates), e.g. [ '\bCrystal Paris\b', 'g', 'Kristal Paris' ].
+ * translation (proper names the model translates), e.g. [ '\bBlue Lagoon\b', 'g', 'Plava Laguna' ] keeps a
+ * hotel name the model translated.
  */
 
 namespace Marclie\Lingua;

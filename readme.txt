@@ -82,7 +82,8 @@ Filters:
 * `marclie_lingua/attributes` — attributes holding copy (default `placeholder`, `title`, `alt`, `aria-label`);
 * `marclie_lingua/skip_selectors` — CSS selectors never translated;
 * `marclie_lingua/url_excluded` — `( bool $excluded, string $url )` keep a URL without prefix;
-* `marclie_lingua/language_presets` — add or change selectable languages;
+* `marclie_lingua/language_presets` — add or change selectable languages (add it in a must-use plugin: the
+  language URLs are resolved before themes load);
 * `marclie_lingua/post_types`, `marclie_lingua/blog_post_page` — what counts as a blog post;
 * `marclie_lingua/browser_fixes` — `[ regex, flags, replacement ]` fixes of the in-browser translation;
 * `marclie_lingua/scan_urls`, `marclie_lingua/sitemap_exclude_ids`, `marclie_lingua/capability`.

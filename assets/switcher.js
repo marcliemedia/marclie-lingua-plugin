@@ -28,6 +28,7 @@
 		const item = { root, toggle, menu, timer: 0 };
 		switches.push( item );
 		setOpen( item, false );
+		root.setAttribute( 'data-mlg-ready', '' ); // the CSS no-script fallback steps aside
 
 		// a mouse click (detail > 0) after the hover opened the menu keeps it open; keyboard Enter / Space toggles
 		toggle.addEventListener( 'click', ( event ) => setOpen( item, ( hover.matches && event.detail > 0 ) || menu.hidden ) );

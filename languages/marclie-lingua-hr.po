@@ -161,8 +161,8 @@ msgid "Each row is one text of the site in %1$s with its %2$s translation; an em
 msgstr "Svaki redak je jedan tekst stranice na jeziku %1$s s prijevodom na jezik %2$s; prazan prijevod prikazuje tekst na jeziku %1$s. Oznake poput <strong>…</strong> ili <a>…</a> iz teksta zadržite i u prijevodu: one nose podebljani tekst, poveznice i ikone."
 
 #: src/Admin/Page.php:232
-#: src/Admin/SettingsPage.php:108
-#: src/Admin/SettingsPage.php:111
+#: src/Admin/SettingsPage.php:109
+#: src/Admin/SettingsPage.php:112
 msgid "Translated languages"
 msgstr "Jezici prijevoda"
 
@@ -175,7 +175,7 @@ msgid "Texts"
 msgstr "Tekstovi"
 
 #: src/Admin/SettingsPage.php:30
-#: src/Admin/SettingsPage.php:87
+#: src/Admin/SettingsPage.php:88
 msgid "Translation settings"
 msgstr "Postavke prijevoda"
 
@@ -183,63 +183,63 @@ msgstr "Postavke prijevoda"
 msgid "Settings"
 msgstr "Postavke"
 
-#: src/Admin/SettingsPage.php:69
+#: src/Admin/SettingsPage.php:70
 msgid "The source language was not changed: confirm that every stored text and translation may be deleted."
 msgstr "Izvorni jezik nije promijenjen: potvrdite da se svi spremljeni tekstovi i prijevodi smiju izbrisati."
 
-#: src/Admin/SettingsPage.php:73
+#: src/Admin/SettingsPage.php:74
 msgid "Source language changed; every stored text was deleted. Scan the site to collect the texts again."
 msgstr "Izvorni jezik je promijenjen; svi spremljeni tekstovi su izbrisani. Skenirajte stranicu da se tekstovi ponovno prikupe."
 
-#: src/Admin/SettingsPage.php:94
+#: src/Admin/SettingsPage.php:95
 msgid "Source language"
 msgstr "Izvorni jezik"
 
-#: src/Admin/SettingsPage.php:101
+#: src/Admin/SettingsPage.php:102
 msgid "The language the content is written in. It is the default language: its pages keep their URLs without a language prefix."
 msgstr "Jezik na kojem je sadržaj napisan. To je zadani jezik: njegove stranice zadržavaju URL-ove bez jezičnog prefiksa."
 
-#: src/Admin/SettingsPage.php:103
+#: src/Admin/SettingsPage.php:104
 msgid "Changing it deletes every stored text and translation (they belong to the current source language)."
 msgstr "Promjena briše sve spremljene tekstove i prijevode (pripadaju trenutačnom izvornom jeziku)."
 
-#: src/Admin/SettingsPage.php:121
+#: src/Admin/SettingsPage.php:122
 msgid "Position in the language switcher"
 msgstr "Položaj u izborniku jezika"
 
-#: src/Admin/SettingsPage.php:126
+#: src/Admin/SettingsPage.php:127
 msgid "Each language gets its URLs under its prefix. The number sets its position in the language switcher."
 msgstr "Svaki jezik dobiva URL-ove pod svojim prefiksom. Broj određuje njegov položaj u izborniku jezika."
 
-#: src/Admin/SettingsPage.php:130
+#: src/Admin/SettingsPage.php:131
 msgid "Marclie Booking"
 msgstr "Marclie Booking"
 
-#: src/Admin/SettingsPage.php:133
+#: src/Admin/SettingsPage.php:134
 msgid "Marclie Booking integration"
 msgstr "Integracija s Marclie Bookingom"
 
-#: src/Admin/SettingsPage.php:136
+#: src/Admin/SettingsPage.php:137
 msgid "Automatic: on when Marclie Booking is active and supports it"
 msgstr "Automatski: uključeno kada je Marclie Booking aktivan i podržava integraciju"
 
-#: src/Admin/SettingsPage.php:137
+#: src/Admin/SettingsPage.php:138
 msgid "On"
 msgstr "Uključeno"
 
-#: src/Admin/SettingsPage.php:138
+#: src/Admin/SettingsPage.php:139
 msgid "Off: booking widgets are translated like any other text"
 msgstr "Isključeno: widgeti za rezervaciju prevode se kao i ostali tekstovi"
 
-#: src/Admin/SettingsPage.php:149
+#: src/Admin/SettingsPage.php:150
 msgid "Search engines"
 msgstr "Tražilice"
 
-#: src/Admin/SettingsPage.php:151
+#: src/Admin/SettingsPage.php:152
 msgid "Let search engines index the translated pages (hreflang links, own canonical URL, language sitemaps)"
 msgstr "Dopusti tražilicama indeksiranje prevedenih stranica (hreflang poveznice, vlastiti kanonski URL, mape web-stranice po jeziku)"
 
-#: src/Admin/SettingsPage.php:152
+#: src/Admin/SettingsPage.php:153
 msgid "When off, translated pages are \"noindex, follow\"."
 msgstr "Kada je isključeno, prevedene stranice su „noindex, follow”."
 
@@ -287,23 +287,23 @@ msgstr "Desno"
 msgid "Add a target language in Marclie Lingua settings to show the switcher."
 msgstr "Dodajte jezik prijevoda u postavkama Marclie Lingue da bi se izbornik prikazao."
 
-#: src/Integrations/Booking.php:107
+#: src/Integrations/Booking.php:97
 msgid "Marclie Booking is not active."
 msgstr "Marclie Booking nije aktivan."
 
-#: src/Integrations/Booking.php:111
+#: src/Integrations/Booking.php:101
 msgid "Marclie Booking is active but this version does not support the language integration: its widgets are left untranslated and keep their own language."
 msgstr "Marclie Booking je aktivan, ali ova verzija ne podržava jezičnu integraciju: njegovi widgeti se ne prevode i zadržavaju vlastiti jezik."
 
-#: src/Integrations/Booking.php:112
+#: src/Integrations/Booking.php:102
 msgid "Marclie Booking is active but this version does not support the language integration."
 msgstr "Marclie Booking je aktivan, ali ova verzija ne podržava jezičnu integraciju."
 
-#: src/Integrations/Booking.php:116
+#: src/Integrations/Booking.php:106
 msgid "Marclie Booking detected: the integration is on."
 msgstr "Marclie Booking je pronađen: integracija je uključena."
 
-#: src/Integrations/Booking.php:117
+#: src/Integrations/Booking.php:107
 msgid "Marclie Booking detected: the integration is off."
 msgstr "Marclie Booking je pronađen: integracija je isključena."
 
@@ -314,3 +314,7 @@ msgstr "Nije postavljen nijedan jezik prijevoda."
 #: src/Switcher.php:158
 msgid "Language"
 msgstr "Jezik"
+
+#: src/Install.php:56
+msgid "Marclie Lingua could not update its database tables; translated pages may be incomplete. The update is retried on every admin page."
+msgstr "Marclie Lingua nije uspio ažurirati svoje tablice u bazi podataka; prevedene stranice mogu biti nepotpune. Ažuriranje se ponovno pokušava na svakoj stranici administracije."

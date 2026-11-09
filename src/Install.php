@@ -18,9 +18,13 @@ final class Install {
 
 	public const VERSION_OPTION = 'mlg_db_version';
 
+	/** Transient set when an upgrade failed: retried once an hour (or on any admin screen), shown as a notice. */
+	public const ERROR_TRANSIENT = 'mlg_upgrade_error';
+
 	public static function hooks(): void {
 		add_action( 'plugins_loaded', array( self::class, 'maybeUpgrade' ) );
 		add_action( 'update_option_' . Settings::OPTION, array( self::class, 'seedNewTargets' ), 20, 2 );
+		add_action( 'admin_notices', array( self::class, 'notice' ) );
 	}
 
 	public static function seedFile( string $code ): string {
@@ -33,9 +37,25 @@ final class Install {
 	}
 
 	public static function maybeUpgrade(): void {
-		if ( (int) get_option( self::VERSION_OPTION, 0 ) < self::DB_VERSION ) {
-			self::install();
+		if ( (int) get_option( self::VERSION_OPTION, 0 ) >= self::DB_VERSION ) {
+			return;
 		}
+		if ( false !== get_transient( self::ERROR_TRANSIENT ) && ! is_admin() ) {
+			return;
+		}
+		self::install();
+	}
+
+	public static function notice(): void {
+		$error = get_transient( self::ERROR_TRANSIENT );
+		if ( false === $error || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		printf(
+			'<div class="notice notice-error"><p>%1$s</p><p><code>%2$s</code></p></div>',
+			esc_html__( 'Marclie Lingua could not update its database tables; translated pages may be incomplete. The update is retried on every admin page.', 'marclie-lingua' ),
+			esc_html( (string) $error )
+		);
 	}
 
 	public static function install(): void {
@@ -47,12 +67,15 @@ final class Install {
 		dbDelta( Store::schema() );
 		foreach ( array( Store::table(), Store::translationsTable() ) as $table ) {
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) !== $table ) {
-				return; // retried on the next load
+				set_transient( self::ERROR_TRANSIENT, '' !== $wpdb->last_error ? $wpdb->last_error : "Table $table missing", HOUR_IN_SECONDS );
+				return;
 			}
 		}
 		if ( 1 === $from && ! self::migrateFrom1() ) {
+			set_transient( self::ERROR_TRANSIENT, '' !== $wpdb->last_error ? $wpdb->last_error : 'Migration 1 → 2 failed', HOUR_IN_SECONDS );
 			return;
 		}
+		delete_transient( self::ERROR_TRANSIENT );
 		if ( null === get_option( Settings::OPTION, null ) ) {
 			Settings::save( Settings::defaults() );
 		}

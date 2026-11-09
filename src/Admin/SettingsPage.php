@@ -60,7 +60,8 @@ final class SettingsPage {
 		$current = Settings::get();
 		$order   = (array) ( $input['order'] ?? array() );
 		$targets = array_map( 'strval', (array) ( $input['targets'] ?? array() ) );
-		usort( $targets, static fn( string $a, string $b ): int => ( (int) ( $order[ $a ] ?? 99 ) <=> (int) ( $order[ $b ] ?? 99 ) ) ?: strcmp( $a, $b ) );
+		$position = static fn( string $code ): int => '' === (string) ( $order[ $code ] ?? '' ) ? 99 : (int) $order[ $code ];
+		usort( $targets, static fn( string $a, string $b ): int => ( $position( $a ) <=> $position( $b ) ) ?: strcmp( $a, $b ) );
 		$input['targets'] = $targets;
 
 		$source = sanitize_key( (string) ( $input['source'] ?? $current['source'] ) );

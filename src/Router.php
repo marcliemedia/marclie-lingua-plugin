@@ -46,15 +46,18 @@ final class Router {
 		if ( null !== $segment && Settings::isTarget( $segment ) ) {
 			$rest = (string) substr( $rel, strlen( $segment ) + 1 );
 			if ( '' === $rest ) {
-				self::$redirect = $base . '/' . $segment . '/' . $suffix;
-				return;
+				if ( self::isRead() ) {
+					self::$redirect = $base . '/' . $segment . '/' . $suffix;
+					return;
+				}
+				$rest = '/'; // a form posted to `/en`: serve the language's home page
 			}
 			self::$current          = $segment;
 			$_SERVER['REQUEST_URI'] = $base . $rest . $suffix;
 			// servers that pass the path as PATH_INFO (WordPress prefers it when set); it has no base path
 			$info = isset( $_SERVER['PATH_INFO'] ) ? (string) $_SERVER['PATH_INFO'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- rebuilt only.
-			if ( str_starts_with( $info, '/' . $segment . '/' ) ) {
-				$_SERVER['PATH_INFO'] = substr( $info, strlen( $segment ) + 1 );
+			if ( '/' . $segment === $info || str_starts_with( $info, '/' . $segment . '/' ) ) {
+				$_SERVER['PATH_INFO'] = '/' . ltrim( substr( $info, strlen( $segment ) + 1 ), '/' );
 			}
 			return;
 		}
@@ -63,7 +66,7 @@ final class Router {
 			self::$redirect = $base . ( '' === $rest ? '/' : $rest ) . $suffix;
 			return;
 		}
-		if ( null !== $query && Settings::targets() ) {
+		if ( null !== $query && Settings::targets() && ! self::excluded( $rel ) ) {
 			parse_str( $query, $args );
 			$legacy = isset( $args[ self::LEGACY_ARG ] ) && is_string( $args[ self::LEGACY_ARG ] ) ? strtolower( $args[ self::LEGACY_ARG ] ) : '';
 			if ( '' !== $legacy && ( Settings::isTarget( $legacy ) || Settings::source()->code === $legacy ) ) {
@@ -80,10 +83,14 @@ final class Router {
 	}
 
 	public static function sendRedirect(): void {
-		if ( '' === self::$redirect || ! in_array( $_SERVER['REQUEST_METHOD'] ?? 'GET', array( 'GET', 'HEAD' ), true ) ) {
+		if ( '' === self::$redirect || ! self::isRead() ) {
 			return;
 		}
-		wp_safe_redirect( self::$redirect, 301, 'Marclie Lingua' );
+		$target = wp_validate_redirect( self::$redirect, '' );
+		if ( '' === $target ) {
+			return; // malformed request path (e.g. `//host`): leave it to WordPress
+		}
+		wp_safe_redirect( $target, 301, 'Marclie Lingua' );
 		exit;
 	}
 
@@ -197,5 +204,10 @@ final class Router {
 		$script = basename( (string) ( $_SERVER['SCRIPT_NAME'] ?? 'index.php' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
 
 		return 'index.php' === $script && ! isset( $_GET['rest_route'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- routing only.
+	}
+
+	/** GET or HEAD: only these are redirected (a redirect would turn a POST into a GET). */
+	private static function isRead(): bool {
+		return in_array( strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) ), array( 'GET', 'HEAD' ), true ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
 	}
 }

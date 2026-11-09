@@ -60,6 +60,8 @@
 	background: var(--mlg-switch-bg); box-shadow: var(--mlg-switch-shadow);
 }
 :where(.mlg-switch) .mlg-switch__menu[hidden] { display: none; }
+/* without the script (or before it runs): keyboard focus inside the switcher shows the list */
+:where(.mlg-switch:not([data-mlg-ready]):focus-within) .mlg-switch__menu[hidden] { display: block; }
 /* hover bridge from the button down to the list */
 :where(.mlg-switch) .mlg-switch__menu::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: var(--mlg-switch-gap); }
 :where(.mlg-switch--align-right) .mlg-switch__menu { left: auto; right: 0; }
