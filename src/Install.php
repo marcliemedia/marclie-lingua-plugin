@@ -4,6 +4,7 @@
  *
  * DB 1 → 2 (plugin 0.1 → 0.2): translations move from `mlg_strings.translation/status` to `mlg_translations`
  * (language `en`: 0.1 translated into English only); settings for 0.1 sites = source `hr`, target `en`.
+ * DB 2 → 3 (0.3): table `mlg_post_translations` (whole-post translations, PostTranslations).
  * Seed files `data/{code}.json` (list of {source, translation}) are imported as `auto` when a site is installed
  * and when a language is added; `wp marclie-lingua export --seed --lang=<code>` writes them.
  */
@@ -14,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Install {
 
-	public const DB_VERSION = 2;
+	public const DB_VERSION = 3;
 
 	public const VERSION_OPTION = 'mlg_db_version';
 
@@ -64,8 +65,8 @@ final class Install {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$from             = (int) get_option( self::VERSION_OPTION, 0 );
 		$wpdb->last_error = '';
-		dbDelta( Store::schema() );
-		foreach ( array( Store::table(), Store::translationsTable() ) as $table ) {
+		dbDelta( array_merge( Store::schema(), array( PostTranslations::schema() ) ) );
+		foreach ( array( Store::table(), Store::translationsTable(), PostTranslations::table() ) as $table ) {
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) !== $table ) {
 				set_transient( self::ERROR_TRANSIENT, '' !== $wpdb->last_error ? $wpdb->last_error : "Table $table missing", HOUR_IN_SECONDS );
 				return;

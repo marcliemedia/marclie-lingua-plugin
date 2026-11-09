@@ -8,7 +8,7 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 global $wpdb;
 
-foreach ( array( 'mlg_translations', 'mlg_strings' ) as $table ) {
+foreach ( array( 'mlg_post_translations', 'mlg_translations', 'mlg_strings' ) as $table ) {
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . $table ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- own tables.
 }
 foreach ( array( 'mlg_settings', 'mlg_incomplete', 'mlg_db_version', 'mlg_scan_token', 'mlg_last_scan', 'mlg_scan_running' ) as $option ) {

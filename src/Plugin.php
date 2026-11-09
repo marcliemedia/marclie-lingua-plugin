@@ -12,6 +12,7 @@ final class Plugin {
 	public static function boot(): void {
 		Settings::hooks();
 		Install::hooks();
+		PostTranslations::hooks();
 		add_action(
 			'init',
 			static function (): void {

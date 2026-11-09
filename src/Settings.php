@@ -6,8 +6,9 @@
  * - `booking`  Marclie Booking integration: `auto` (on when Booking supports it), `on`, `off`;
  * - `index`    translated pages may be indexed (hreflang, canonical, sitemap) — else `noindex, follow`;
  * - `xdefault` language of the `hreflang="x-default"` link (searchers whose language the site does not have);
- * - `blog`     blog posts: `stored` (translated from stored pairs like any page, indexable) or `browser`
- *              (parts marked `data-mlg-skip` translated in the visitor's browser; translated versions noindex).
+ * - `blog`     blog posts: `document` (whole-post translations, PostTranslations), `strings` (translated from
+ *              stored string pairs like any page) or `browser` (parts marked `data-mlg-skip` translated in the
+ *              visitor's browser; translated versions noindex).
  */
 
 namespace Marclie\Lingua;
@@ -20,7 +21,7 @@ final class Settings {
 
 	public const BOOKING_MODES = array( 'auto', 'on', 'off' );
 
-	public const BLOG_MODES = array( 'stored', 'browser' );
+	public const BLOG_MODES = array( 'document', 'strings', 'browser' );
 
 	/** @var array{source: string, targets: list<string>, booking: string, index: bool, xdefault: string, blog: string}|null */
 	private static ?array $cache = null;
@@ -45,7 +46,7 @@ final class Settings {
 			'booking'  => 'auto',
 			'index'    => true,
 			'xdefault' => $code,
-			'blog'     => 'stored',
+			'blog'     => 'document',
 		);
 	}
 
@@ -81,7 +82,7 @@ final class Settings {
 		}
 		$booking  = (string) ( $input['booking'] ?? 'auto' );
 		$xdefault = sanitize_key( (string) ( $input['xdefault'] ?? $source ) );
-		$blog     = (string) ( $input['blog'] ?? 'stored' );
+		$blog     = (string) ( $input['blog'] ?? 'document' );
 
 		return array(
 			'source'   => $source,
@@ -89,7 +90,7 @@ final class Settings {
 			'booking'  => in_array( $booking, self::BOOKING_MODES, true ) ? $booking : 'auto',
 			'index'    => ! empty( $input['index'] ),
 			'xdefault' => in_array( $xdefault, $targets, true ) ? $xdefault : $source,
-			'blog'     => in_array( $blog, self::BLOG_MODES, true ) ? $blog : 'stored',
+			'blog'     => in_array( $blog, self::BLOG_MODES, true ) ? $blog : 'document',
 		);
 	}
 
@@ -148,5 +149,10 @@ final class Settings {
 	/** Blog posts translated in the visitor's browser (not stored, not indexed in translated languages). */
 	public static function browserBlog(): bool {
 		return 'browser' === self::get()['blog'];
+	}
+
+	/** Blog posts translated as whole documents (PostTranslations). */
+	public static function documentBlog(): bool {
+		return 'document' === self::get()['blog'];
 	}
 }

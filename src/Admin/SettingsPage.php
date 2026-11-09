@@ -168,7 +168,8 @@ final class SettingsPage {
 						<td>
 							<fieldset>
 								<legend class="screen-reader-text"><?php esc_html_e( 'Blog posts', 'marclie-lingua' ); ?></legend>
-								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="stored" <?php checked( $settings['blog'], 'stored' ); ?>> <?php esc_html_e( 'Translate like the other pages (texts stored and edited here; translated posts can be found in search engines)', 'marclie-lingua' ); ?></label><br>
+								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="document" <?php checked( $settings['blog'], 'document' ); ?>> <?php esc_html_e( 'Translate whole posts (Translations › Posts: title, content, excerpt, URL and SEO per language; translated posts can be found in search engines)', 'marclie-lingua' ); ?></label><br>
+								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="strings" <?php checked( $settings['blog'], 'strings' ); ?>> <?php esc_html_e( 'Translate text by text like the other pages (Translations › Texts)', 'marclie-lingua' ); ?></label><br>
 								<label><input type="radio" name="<?php echo esc_attr( $name ); ?>[blog]" value="browser" <?php checked( $settings['blog'], 'browser' ); ?>> <?php esc_html_e( 'Translate in the visitor\'s browser (parts marked data-mlg-skip; nothing to translate here, but translated posts are not indexed)', 'marclie-lingua' ); ?></label>
 							</fieldset>
 						</td>
