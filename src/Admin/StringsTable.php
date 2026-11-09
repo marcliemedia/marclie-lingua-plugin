@@ -98,7 +98,21 @@ final class StringsTable extends \WP_List_Table {
 	}
 
 	public function no_items() {
-		esc_html_e( 'No strings here.', 'marclie-lingua' );
+		if ( '' !== self::search() ) {
+			/* translators: %s: search terms. */
+			echo esc_html( sprintf( __( 'No texts match “%s”.', 'marclie-lingua' ), self::search() ) );
+			return;
+		}
+		$view = self::view();
+		if ( 'new' === $view ) {
+			esc_html_e( 'Everything is translated.', 'marclie-lingua' );
+		} elseif ( 'stale' === $view ) {
+			esc_html_e( 'The last scan found every text.', 'marclie-lingua' );
+		} elseif ( 'all' === $view && '' === Scanner::lastScan() ) {
+			esc_html_e( 'No texts yet. Scan the site to collect them.', 'marclie-lingua' );
+		} else {
+			esc_html_e( 'No texts here.', 'marclie-lingua' );
+		}
 	}
 
 	/** @param array<string, mixed> $item */
@@ -153,6 +167,6 @@ final class StringsTable extends \WP_List_Table {
 		);
 		$status = (string) $item['status'];
 
-		return sprintf( '<span class="mlg-status mlg-status--%1$s">%2$s</span>', esc_attr( $status ), esc_html( $labels[ $status ] ?? $status ) );
+		return sprintf( '<span class="mlg-pill mlg-pill--%1$s">%2$s</span>', esc_attr( $status ), esc_html( $labels[ $status ] ?? $status ) );
 	}
 }

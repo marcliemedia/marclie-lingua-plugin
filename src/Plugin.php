@@ -12,6 +12,9 @@ final class Plugin {
 	public static function boot(): void {
 		Settings::hooks();
 		Install::hooks();
+		PostTranslations::hooks();
+		PostRenderer::hooks();
+		Paths::hooks();
 		add_action(
 			'init',
 			static function (): void {
@@ -28,9 +31,12 @@ final class Plugin {
 		if ( is_admin() ) {
 			Admin\Page::hooks();
 			Admin\SettingsPage::hooks();
+			Admin\PostEditor::hooks();
+			Admin\PostMetabox::hooks();
 		}
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'marclie-lingua', Cli::class );
+			\WP_CLI::add_command( 'marclie-lingua post', PostCli::class );
 		}
 	}
 }

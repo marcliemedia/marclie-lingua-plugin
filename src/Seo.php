@@ -100,8 +100,13 @@ final class Seo {
 		}
 		$path    = Frontend::requestUri();
 		$current = Language::current();
+		$queried = get_queried_object();
+		$docPost = is_singular() && $queried instanceof \WP_Post && PostTranslations::isDocumentType( $queried->post_type ) ? $queried->ID : 0;
 		$listed  = array();
 		foreach ( Settings::languages() as $lang ) {
+			if ( Settings::isTarget( $lang->code ) && $docPost && null === PostTranslations::published( $docPost, $lang->code ) ) {
+				continue; // a document post exists only in the languages it is translated into
+			}
 			// this page's own language is judged when it is rendered (Frontend drops the links if it is incomplete)
 			if ( ! Settings::isTarget( $lang->code ) || $lang->code === $current || ! Coverage::isIncomplete( $lang->code, $path ) ) {
 				$listed[] = $lang->code;

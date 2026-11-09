@@ -99,7 +99,8 @@ final class Sitemap {
 
 	/** @return list<string> Sitemap URLs of a language, without its pages that still show untranslated texts. */
 	public static function urls( string $code ): array {
-		$urls = array_filter( self::sourceUrls(), static fn( string $url ): bool => ! Coverage::isIncomplete( $code, $url ) );
+		$missing = array_flip( array_map( array( self::class, 'key' ), self::untranslatedDocuments( $code ) ) );
+		$urls    = array_filter( self::sourceUrls(), static fn( string $url ): bool => ! Coverage::isIncomplete( $code, $url ) && ! isset( $missing[ self::key( $url ) ] ) );
 
 		return array_values( array_map( static fn( string $url ): string => Router::url( $url, $code ), $urls ) );
 	}
@@ -242,6 +243,26 @@ final class Sitemap {
 		$exclude = array_flip( array_map( array( self::class, 'key' ), $exclude ) );
 
 		return array_values( array_filter( Scanner::urls(), static fn( string $url ): bool => ! isset( $exclude[ self::key( $url ) ] ) ) );
+	}
+
+	/** @return list<string> Source URLs of document posts without a published translation in a language. */
+	private static function untranslatedDocuments( string $code ): array {
+		$types = array_values( array_filter( Blog::types(), array( PostTranslations::class, 'isDocumentType' ) ) );
+		if ( ! $types ) {
+			return array();
+		}
+		$ids = get_posts(
+			array(
+				'post_type'        => $types,
+				'post_status'      => 'publish',
+				'numberposts'      => -1,
+				'fields'           => 'ids',
+				'post__not_in'     => PostTranslations::publishedIds( $code ),
+				'suppress_filters' => true,
+			)
+		);
+
+		return array_values( array_filter( array_map( static fn( int $id ): string => (string) get_permalink( $id ), $ids ) ) );
 	}
 
 	private static function key( string $url ): string {

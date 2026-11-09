@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 — 2026-11-09
+
+### Added
+- Whole-post translations for blog posts (setting "Blog posts" → "Translate whole posts", default on new sites):
+  title, content, excerpt, slug, SEO title / description per language (table `mlg_post_translations`), drafts and
+  publishing, "Needs review" flag with a diff of the original and "Mark as reviewed".
+- Admin: Translations › Posts (status per post and language) and a side-by-side translation editor; a "Translations"
+  box on the post edit screen. Refreshed Texts and Settings screens.
+- Translated post slugs (`mlg_paths`): incoming URLs, links, switcher, hreflang, canonical and sitemaps; the source
+  slug and former slugs redirect (301).
+- Lists of posts in a language show only posts translated into it; searches in a language search the translations.
+- WP-CLI `wp marclie-lingua post export|import` for translating posts outside WordPress (e.g. AI drafts).
+
+### Changed
+- Blog mode `stored` is now called `strings`.
+
 ## 0.2.1 — 2026-11-09
 
 ### Added

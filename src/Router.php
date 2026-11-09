@@ -52,12 +52,18 @@ final class Router {
 				}
 				$rest = '/'; // a form posted to `/en`: serve the language's home page
 			}
+			$moved = self::isRead() ? Paths::redirect( $segment, $rest ) : null;
+			if ( null !== $moved ) {
+				self::$redirect = $base . '/' . $segment . $moved . $suffix; // source or former slug → translated slug
+				return;
+			}
+			$source                 = Paths::toSource( $segment, $rest ); // translated slug → the post's own path
 			self::$current          = $segment;
-			$_SERVER['REQUEST_URI'] = $base . $rest . $suffix;
+			$_SERVER['REQUEST_URI'] = $base . $source . $suffix;
 			// servers that pass the path as PATH_INFO (WordPress prefers it when set); it has no base path
 			$info = isset( $_SERVER['PATH_INFO'] ) ? (string) $_SERVER['PATH_INFO'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- rebuilt only.
 			if ( '/' . $segment === $info || str_starts_with( $info, '/' . $segment . '/' ) ) {
-				$_SERVER['PATH_INFO'] = '/' . ltrim( substr( $info, strlen( $segment ) + 1 ), '/' );
+				$_SERVER['PATH_INFO'] = $source;
 			}
 			return;
 		}
@@ -150,9 +156,12 @@ final class Router {
 		if ( null !== $segment && ( Settings::isTarget( $segment ) || $segment === Settings::source()->code ) ) {
 			$rel = (string) substr( $rel, strlen( $segment ) + 1 );
 			$rel = '' === $rel ? '/' : $rel;
+			if ( Settings::isTarget( $segment ) ) {
+				$rel = Paths::toSource( $segment, $rel );
+			}
 		}
 		if ( $lang !== Settings::source()->code && Settings::isTarget( $lang ) ) {
-			$rel = '/' . $lang . $rel;
+			$rel = '/' . $lang . Paths::toTranslated( $lang, $rel );
 		}
 
 		$out = '';

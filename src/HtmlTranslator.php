@@ -54,6 +54,14 @@ final class HtmlTranslator {
 
 	private string $skip;
 
+	/** @var array<string, true> plain texts already in the page's language (Format::loose) */
+	private array $owned = array();
+
+	/** Comment pair around whole-post content (PostRenderer): everything between them is left as it is. */
+	public const DOC_START = 'mlg:doc';
+
+	public const DOC_END = '/mlg:doc';
+
 	/** Elements already classified as blog post parts (true) or not (false). */
 	private \WeakMap $parts;
 
@@ -69,6 +77,10 @@ final class HtmlTranslator {
 	 * @param \Closure|null $blog          (\Dom\Element): bool — further blog post parts of this page.
 	 * @param \Closure|null $finish        (\Dom\HTMLDocument, int $missing): void — called before serializing, with
 	 *                                     the number of the page's texts that have no translation.
+	 * @param list<string>  $owned         Plain texts that are already in the page's language (whole-post
+	 *                                     translations: titles, excerpts); never stored as strings, never missing.
+	 * @param bool          $headStrings   Translate `<title>` and the head metas as strings (false: they come
+	 *                                     translated from the post translation filters).
 	 */
 	public function __construct(
 		private \Closure $resolve,
@@ -77,8 +89,13 @@ final class HtmlTranslator {
 		private bool $translateHead = true,
 		private bool $browserParts = true,
 		private ?\Closure $blog = null,
-		private ?\Closure $finish = null
+		private ?\Closure $finish = null,
+		array $owned = array(),
+		private bool $headStrings = true
 	) {
+		foreach ( $owned as $text ) {
+			$this->owned[ Format::loose( (string) $text ) ] = true;
+		}
 		$this->attrs = array_values( array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/attributes', self::ATTRS ) ) ) );
 		$this->skip  = implode( ', ', array_unique( array_map( 'strval', (array) apply_filters( 'marclie_lingua/skip_selectors', self::SKIP ) ) ) );
 		$this->parts = new \WeakMap();
@@ -90,11 +107,12 @@ final class HtmlTranslator {
 		if ( null !== $doc->body ) {
 			$this->walk( $doc->body );
 		}
-		$title = $this->translateHead ? $doc->querySelector( 'head > title' ) : null;
+		$headStrings = $this->translateHead && $this->headStrings;
+		$title       = $headStrings ? $doc->querySelector( 'head > title' ) : null;
 		if ( null !== $title ) {
 			$this->add( 'title', $title, Format::escapeText( $title->textContent ) );
 		}
-		foreach ( $this->translateHead ? self::HEAD : array() as $selector => $attr ) {
+		foreach ( $headStrings ? self::HEAD : array() as $selector => $attr ) {
 			foreach ( $doc->querySelectorAll( $selector ) as $el ) {
 				$this->add( 'attr', $el, Format::escapeText( (string) $el->getAttribute( $attr ) ), $attr );
 			}
@@ -169,20 +187,58 @@ final class HtmlTranslator {
 			return;
 		}
 		$this->attributes( $el );
-		if ( $this->isUnit( $el ) ) {
+		if ( ! self::hasDocMarker( $el ) && $this->isUnit( $el ) && ! $this->holdsOwned( $el ) ) {
 			$this->add( 'unit', $el, $this->serialize( $el ) );
 			foreach ( $el->querySelectorAll( '*' ) as $inner ) {
 				$this->attributes( $inner );
 			}
 			return;
 		}
+		$inDoc = false;
 		foreach ( iterator_to_array( $el->childNodes ) as $child ) {
-			if ( $child instanceof \Dom\Text ) {
+			if ( $child instanceof \Dom\Comment ) {
+				$data  = trim( $child->data );
+				$inDoc = self::DOC_START === $data ? true : ( self::DOC_END === $data ? false : $inDoc );
+			} elseif ( $inDoc ) {
+				continue; // whole-post content: translated (or deliberately left) by PostRenderer
+			} elseif ( $child instanceof \Dom\Text ) {
 				$this->add( 'text', $child, Format::escapeText( $child->data ) );
 			} elseif ( $child instanceof \Dom\Element ) {
 				$this->walk( $child );
 			}
 		}
+	}
+
+	/**
+	 * The element's text contains an owned text with something around it (e.g. an excerpt followed by a "read more"
+	 * link in the same paragraph): its children are taken one by one instead, so the owned part stays as it is and
+	 * the rest is translated.
+	 */
+	private function holdsOwned( \Dom\Element $el ): bool {
+		if ( ! $this->owned ) {
+			return false;
+		}
+		$text = Format::loose( (string) $el->textContent );
+		if ( isset( $this->owned[ $text ] ) ) {
+			return false; // exactly owned: add() skips it as a whole
+		}
+		foreach ( $this->owned as $owned => $true ) {
+			if ( mb_strlen( $owned ) >= 12 && str_contains( $text, $owned ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function hasDocMarker( \Dom\Element $el ): bool {
+		foreach ( $el->childNodes as $child ) {
+			if ( $child instanceof \Dom\Comment && self::DOC_START === trim( $child->data ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Own text with words + inline-only descendants. */
@@ -236,7 +292,7 @@ final class HtmlTranslator {
 
 	private function add( string $kind, \Dom\Node $node, string $raw, string $attr = '' ): void {
 		$source = Format::normalize( $raw );
-		if ( '' === $source || ! Format::hasWords( Format::plain( $source ) ) ) {
+		if ( '' === $source || ! Format::hasWords( Format::plain( $source ) ) || isset( $this->owned[ Format::loose( Format::plain( $source ) ) ] ) ) {
 			return;
 		}
 		$hash                   = Format::hash( $source );

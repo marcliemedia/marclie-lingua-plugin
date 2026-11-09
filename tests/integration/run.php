@@ -11,6 +11,8 @@
 use Marclie\Lingua\Coverage;
 use Marclie\Lingua\Format;
 use Marclie\Lingua\Language;
+use Marclie\Lingua\Paths;
+use Marclie\Lingua\PostTranslations;
 use Marclie\Lingua\Router;
 use Marclie\Lingua\Settings;
 use Marclie\Lingua\Store;
@@ -120,6 +122,42 @@ try {
 	Store::delete( $ids );
 	$left = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . Store::translationsTable() . ' WHERE string_id IN (' . implode( ',', array_fill( 0, max( 1, count( $ids ) ), '%d' ) ) . ')', $ids ?: array( 0 ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$mlgCheck( 'delete removes translations too', 0 === $left );
+}
+
+// --- Whole-post translations: states, unique slugs, translated paths ------------------------------------------
+add_filter( 'option_mlg_settings', static fn( $v ) => array_merge( (array) $v, array( 'blog' => 'document' ) ), 11 );
+Settings::flush();
+$postId  = 0;
+$otherId = 0;
+try {
+	$postId  = (int) wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Članak mlg-integration', 'post_name' => 'mlg-integration-post', 'post_content' => '<p>Tekst.</p>' ) );
+	$otherId = (int) wp_insert_post( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Drugi mlg-integration', 'post_name' => 'mlg-integration-taken', 'post_content' => '<p>Drugi.</p>' ) );
+	$post    = get_post( $postId );
+	$mlgCheck( 'post: untranslated state', 'none' === PostTranslations::state( $post, 'en' ) );
+	$row = PostTranslations::save( $postId, 'en', array( 'title' => 'Article', 'content' => '<p>Text.</p>', 'slug' => 'mlg-integration-taken' ), 'draft' );
+	$mlgCheck( 'post: slug of another post is not reused', 'mlg-integration-taken-2' === $row['slug'], $row['slug'] );
+	$mlgCheck( 'post: draft is not shown', 'draft' === PostTranslations::state( $post, 'en' ) && null === PostTranslations::published( $postId, 'en' ) );
+	PostTranslations::save( $postId, 'en', array( 'slug' => 'mlg-integration-article' ), 'published' );
+	$source = (string) wp_parse_url( get_permalink( $postId ), PHP_URL_PATH );
+	$target = str_replace( 'mlg-integration-post', 'mlg-integration-article', $source );
+	$mlgCheck( 'paths: source → translated slug', '/en' . $target === Router::url( $source, 'en' ), Router::url( $source, 'en' ) );
+	$mlgCheck( 'paths: translated slug → source', $source === Router::url( '/en' . $target, 'hr' ) );
+	$mlgCheck( 'paths: other language keeps the source slug', '/de' . $source === Router::url( '/en' . $target, 'de' ) );
+	$mlgCheck( 'paths: source slug in the language redirects', $target === Paths::redirect( 'en', $source ) );
+	wp_update_post( array( 'ID' => $postId, 'post_content' => '<p>Novi tekst.</p>' ) );
+	$mlgCheck( 'post: edited source → outdated, still published', 'outdated' === PostTranslations::state( get_post( $postId ), 'en' ) && null !== PostTranslations::published( $postId, 'en' ) );
+	PostTranslations::markReviewed( $postId, 'en' );
+	$mlgCheck( 'post: reviewed → published', 'published' === PostTranslations::state( get_post( $postId ), 'en' ) );
+	PostTranslations::save( $postId, 'en', array( 'slug' => 'mlg-integration-renamed' ), 'published' );
+	$mlgCheck( 'paths: former translated slug redirects', str_replace( 'mlg-integration-post', 'mlg-integration-renamed', $source ) === Paths::redirect( 'en', $target ) );
+} finally {
+	foreach ( array( $postId, $otherId ) as $id ) {
+		if ( $id ) {
+			wp_delete_post( $id, true );
+		}
+	}
+	$mlgCheck( 'post: deleting the post deletes its translations', $postId && array() === PostTranslations::forPost( $postId ) );
+	$mlgCheck( 'paths: deleted post leaves no path', ! isset( ( get_option( Paths::OPTION )['to']['en'] ?? array() )[ $source ?? '' ] ) );
 }
 
 echo $mlgFail ? "\n$mlgFail failed\n" : "\nall passed\n";

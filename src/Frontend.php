@@ -28,6 +28,9 @@ final class Frontend {
 	/** The page is a lasting URL whose completeness is remembered (not a 404 or a search). */
 	private static bool $track = false;
 
+	/** Single post in document mode: its head comes translated from PostRenderer (null: not such a page). */
+	private static ?bool $docTranslated = null;
+
 	public static function hooks(): void {
 		// priority 0: an outer buffer, so it receives the document after inner buffers (theme icons) ran
 		add_action( 'template_redirect', array( self::class, 'startBuffer' ), 0 );
@@ -49,11 +52,15 @@ final class Frontend {
 
 	public static function startBuffer(): void {
 		if ( self::active() ) {
-			$browser       = Settings::browserBlog();
-			self::$post    = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
-			self::$archive = $browser && ( is_home() || is_archive() );
+			$browser             = Settings::browserBlog();
+			self::$post          = $browser && (bool) apply_filters( 'marclie_lingua/blog_post_page', is_singular( Blog::types() ) );
+			self::$archive       = $browser && ( is_home() || is_archive() );
+			$queried             = get_queried_object();
+			self::$docTranslated = is_singular() && $queried instanceof \WP_Post && PostTranslations::isDocumentType( $queried->post_type )
+				? null !== PostRenderer::translation( $queried->ID )
+				: null;
 			// the state of a page is what an anonymous visitor (and a search engine) gets at its own URL
-			self::$track   = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
+			self::$track = ! is_404() && ! is_search() && ! is_preview() && ! is_user_logged_in()
 				&& 'GET' === ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- compared only.
 				&& ( empty( $_GET ) || '' === (string) get_option( 'permalink_structure' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check.
 			ob_start( array( self::class, 'buffer' ) );
@@ -72,7 +79,9 @@ final class Frontend {
 				! self::$post,
 				Settings::browserBlog(),
 				self::$archive ? self::blogItem( ... ) : null,
-				self::finish( ... )
+				self::finish( ... ),
+				PostRenderer::owned(),
+				null === self::$docTranslated
 			);
 
 			return $translator->translate( $html );
@@ -87,6 +96,9 @@ final class Frontend {
 	 * follow`, no hreflang links (Coverage keeps it out of the other versions' links and the sitemap).
 	 */
 	private static function finish( \Dom\HTMLDocument $doc, int $missing ): void {
+		if ( false === self::$docTranslated ) {
+			++$missing; // a document post without a translation in this language shows its source content
+		}
 		if ( self::$track ) {
 			Coverage::record( Language::current(), self::requestUri(), $missing );
 		}

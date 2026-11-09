@@ -34,6 +34,22 @@ final class Format {
 		return md5( $source );
 	}
 
+	/**
+	 * Comparison form of a plain text that survives typographic filters (wptexturize & co.): white space collapsed,
+	 * curly quotes, dashes and ellipses made plain, lower case.
+	 */
+	public static function loose( string $text ): string {
+		$text = strtr(
+			$text,
+			array(
+				'‘' => "'", '’' => "'", '‚' => "'", '′' => "'", '“' => '"', '”' => '"', '„' => '"', '″' => '"',
+				'–' => '-', '—' => '-', '−' => '-', '…' => '...', '×' => 'x',
+			)
+		);
+
+		return mb_strtolower( self::normalize( $text ) );
+	}
+
 	/** True when the string has a letter (numbers, symbols and blank strings are not translated). */
 	public static function hasWords( string $text ): bool {
 		return 1 === preg_match( '/\p{L}/u', $text );
